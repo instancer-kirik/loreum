@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Layout } from './components/Layout';
-import { Dashboard } from './pages/Dashboard';
+import { DashboardAlt } from './pages/DashboardAlt';
 import { CivilizationBuilder } from './pages/CivilizationBuilder';
 import { TechTreeDesigner } from './pages/TechTreeDesigner';
 import { LoreGraph } from './pages/LoreGraph';
 import { RegionEditor } from './pages/RegionEditor';
-import { PlanetaryStructures } from './pages/PlanetaryStructures';
+import { PlanetaryStructuresEnhanced } from './pages/PlanetaryStructuresEnhanced';
 import { CultureDesigner } from './pages/CultureDesigner';
 import { NarrativeLayer } from './pages/NarrativeLayer';
 import { ItemEditor } from './pages/ItemEditor';
+import { AssetManager } from './pages/AssetManager';
 import { AppContext } from './context/AppContext';
 import { Project } from './types';
 
@@ -19,7 +20,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard onSelectProject={(project) => {
+        return <DashboardAlt onSelectProject={(project) => {
           setCurrentProject(project);
           setCurrentPage('civilization');
         }} />;
@@ -32,15 +33,17 @@ function App() {
       case 'region':
         return <RegionEditor />;
       case 'planetary':
-        return <PlanetaryStructures />;
+        return <PlanetaryStructuresEnhanced />;
       case 'culture':
         return <CultureDesigner />;
       case 'narrative':
         return <NarrativeLayer />;
       case 'items':
         return <ItemEditor />;
+      case 'assets':
+        return <AssetManager />;
       default:
-        return <Dashboard onSelectProject={(project) => {
+        return <DashboardAlt onSelectProject={(project) => {
           setCurrentProject(project);
           setCurrentPage('civilization');
         }} />;

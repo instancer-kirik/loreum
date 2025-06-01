@@ -1,34 +1,34 @@
 import React from 'react';
 import { 
-  Users, 
-  GitBranch, 
-  Network, 
-  Map, 
-  Globe, 
-  Palette, 
-  BookOpen, 
-  Package,
-  Library,
-  PlusCircle,
-  Settings,
-  User
-} from 'lucide-react';
+  FaUsers,
+  FaCode,
+  FaNetworkWired,
+  FaMap,
+  FaGlobe,
+  FaPalette,
+  FaBook,
+  FaBox,
+  FaDatabase,
+  FaPlus,
+  FaCog,
+  FaUser
+} from 'react-icons/fa';
 import { useAppContext } from '../context/AppContext';
 
-export const Sidebar: React.FC = () => {
+export const SidebarAlt: React.FC = () => {
   const { currentPage, setCurrentPage, currentProject } = useAppContext();
 
   const menuItems = [
-    { id: 'dashboard', icon: <PlusCircle size={20} />, label: 'Dashboard', disabled: false },
-    { id: 'civilization', icon: <Users size={20} />, label: 'Civilization', disabled: !currentProject },
-    { id: 'tech-tree', icon: <GitBranch size={20} />, label: 'Tech Tree', disabled: !currentProject },
-    { id: 'lore', icon: <Network size={20} />, label: 'Lore Graph', disabled: !currentProject },
-    { id: 'region', icon: <Map size={20} />, label: 'Region Editor', disabled: !currentProject },
-    { id: 'planetary', icon: <Globe size={20} />, label: 'Planetary', disabled: !currentProject },
-    { id: 'culture', icon: <Palette size={20} />, label: 'Culture', disabled: !currentProject },
-    { id: 'narrative', icon: <BookOpen size={20} />, label: 'Narrative', disabled: !currentProject },
-    { id: 'items', icon: <Package size={20} />, label: 'Items', disabled: !currentProject },
-    { id: 'assets', icon: <Library size={20} />, label: 'Asset Manager', disabled: !currentProject },
+    { id: 'dashboard', icon: <FaPlus size={20} />, label: 'Dashboard', disabled: false },
+    { id: 'civilization', icon: <FaUsers size={20} />, label: 'Civilization', disabled: !currentProject },
+    { id: 'tech-tree', icon: <FaCode size={20} />, label: 'Tech Tree', disabled: !currentProject },
+    { id: 'lore', icon: <FaNetworkWired size={20} />, label: 'Lore Graph', disabled: !currentProject },
+    { id: 'region', icon: <FaMap size={20} />, label: 'Region Editor', disabled: !currentProject },
+    { id: 'planetary', icon: <FaGlobe size={20} />, label: 'Planetary', disabled: !currentProject },
+    { id: 'culture', icon: <FaPalette size={20} />, label: 'Culture', disabled: !currentProject },
+    { id: 'narrative', icon: <FaBook size={20} />, label: 'Narrative', disabled: !currentProject },
+    { id: 'items', icon: <FaBox size={20} />, label: 'Items', disabled: !currentProject },
+    { id: 'assets', icon: <FaDatabase size={20} />, label: 'Asset Manager', disabled: !currentProject },
   ];
 
   return (
@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 blur-sm opacity-70"></div>
             <div className="relative bg-gray-900 p-3 rounded-lg border border-gray-700">
-              <Globe className="h-8 w-8 text-purple-400" />
+              <FaGlobe className="h-8 w-8 text-purple-400" />
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-              <User size={18} />
+              <FaUser size={18} />
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-white">Creator</p>
@@ -79,11 +79,10 @@ export const Sidebar: React.FC = () => {
             </div>
           </div>
           <button className="text-gray-400 hover:text-white">
-            <Settings size={18} />
+            <FaCog size={18} />
           </button>
         </div>
       </div>
     </aside>
   );
 };
-

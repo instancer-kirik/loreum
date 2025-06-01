@@ -1,6 +1,6 @@
 import React from 'react';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
+import { SidebarAlt } from './SidebarAlt';
+import { HeaderAlt } from './HeaderAlt';
 import { useAppContext } from '../context/AppContext';
 
 interface LayoutProps {
@@ -12,9 +12,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
-      <Sidebar />
+      <SidebarAlt />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
+        <HeaderAlt />
         <main className="flex-1 overflow-auto bg-gradient-to-br from-gray-900 to-gray-800">
           <div className="h-full p-6">
             {!currentProject && 

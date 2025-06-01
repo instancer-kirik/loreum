@@ -36,13 +36,9 @@ interface StructureData {
   imageUrl?: string;
 }
 
-export const PlanetaryStructures: React.FC = () => {
+export const PlanetaryStructuresEnhanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'form' | '3d' | 'specs'>('form');
-  const [newStructure, setNewStructure] = useState<StructureData | null>(null);
-  const [showNewStructureForm, setShowNewStructureForm] = useState(false);
-  const [structures, setStructures] = useState<StructureData[]>([]);
   const [viewMode, setViewMode] = useState<'form' | '3d' | 'specs'>('form');
   const [newStructure, setNewStructure] = useState<StructureData | null>(null);
   const [showNewStructureForm, setShowNewStructureForm] = useState(false);
@@ -357,28 +353,9 @@ export const PlanetaryStructures: React.FC = () => {
               <span>Low</span>
               <span>High</span>
             </div>
-          
-            {selectedCategory && (
-              <div className="mt-6">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">EXISTING STRUCTURES</h3>
-                <div className="space-y-2">
-                  {structures
-                    .filter(s => s.type === selectedCategory)
-                    .map(structure => (
-                      <div key={structure.id} className="bg-gray-700 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-white">{structure.name}</span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1 truncate">{structure.description}</p>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
-
-        {/* Main Content */}
+        
         <div className="flex justify-end mt-6">
           <button 
             onClick={addNewStructure}
@@ -590,7 +567,7 @@ export const PlanetaryStructures: React.FC = () => {
             </button>
           </div>
           
-          {selectedCategory && (
+          {selectedCategory && structures.filter(s => s.type === selectedCategory).length > 0 && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-400 mb-2">EXISTING STRUCTURES</h3>
               <div className="space-y-2">
@@ -602,7 +579,13 @@ export const PlanetaryStructures: React.FC = () => {
                         <span className="font-medium text-white">{structure.name}</span>
                       </div>
                       <p className="text-xs text-gray-400 mt-1 truncate">{structure.description}</p>
-                      <div className="flex items-center mt
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
@@ -636,6 +619,51 @@ export const PlanetaryStructures: React.FC = () => {
                     className={`p-2 rounded ${viewMode === 'specs' ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'}`}
                   >
                     <Layers size={18} className="text-gray-300" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-auto p-6">
+              {showNewStructureForm ? (
+                renderStructureForm()
+              ) : viewMode === 'form' ? (
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-900 bg-opacity-20 mb-4">
+                    <Globe className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-2">Structure Designer</h2>
+                  <p className="text-gray-400 mb-6">
+                    Create and modify megastructures with detailed specifications and properties.
+                  </p>
+                  <button 
+                    onClick={() => setShowNewStructureForm(true)}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <PlusCircle size={18} className="mr-2" />
+                    Design New Structure
+                  </button>
+                </div>
+              ) : viewMode === '3d' ? (
+                render3DView()
+              ) : (
+                renderSpecifications()
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center max-w-md p-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-900 bg-opacity-20 mb-4">
+                <Globe className="h-8 w-8 text-blue-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Select a Structure Type</h2>
+              <p className="text-gray-400 mb-6">
+                Choose a structure category from the sidebar to begin designing megastructures.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

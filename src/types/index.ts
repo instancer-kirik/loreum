@@ -1,3 +1,23 @@
+// Import magic-related types
+import { 
+  MagicSystem, 
+  MagicDiscipline, 
+  Enchantment, 
+  MagicalItemProperties,
+  MagicTechDomain,
+  MagicTechnology
+} from './MagicTypes';
+
+// Export magic types
+export type { 
+  MagicSystem, 
+  MagicDiscipline, 
+  Enchantment, 
+  MagicalItemProperties,
+  MagicTechDomain,
+  MagicTechnology
+};
+
 // Adding the new item-related types at the top
 export interface TechItem {
   id: string;
@@ -53,6 +73,8 @@ export interface TechItem {
   materials: string[];
   effects: string[];
   compatibility_tags: string[];
+  // Magic-related properties
+  magical_properties?: MagicalItemProperties;
   inventory_properties: {
     stack_size: number;
     max_stack_size: number;
@@ -119,6 +141,8 @@ export interface Project {
   cultures: Culture[];
   narratives: Narrative[];
   items: ModularItem[];
+  magicSystems?: MagicSystem[]; // Magic systems in this project
+  enchantments?: Enchantment[]; // Enchantments available
   timelineStart: number; // Year
   timelineEnd: number; // Year
 }
@@ -199,6 +223,10 @@ export interface TechTree {
   name: string;
   description: string;
   domains: TechDomain[];
+  // Can include magic domains
+  magicDomains?: MagicTechDomain[];
+  // Is this tech tree magical in nature
+  isMagical?: boolean;
 }
 
 export interface TechDomain {
@@ -216,6 +244,8 @@ export interface Technology {
   discoveryYear: number | null;
   dependencies: string[]; // IDs of prerequisite technologies
   effects: TechEffect[];
+  // If this technology has magical aspects
+  magicalProperties?: MagicTechnology;
 }
 
 export interface TechEffect {
@@ -399,12 +429,15 @@ export interface ModularItem {
   id: string;
   name: string;
   description: string;
-  type: 'item' | 'building' | 'tool' | 'weapon' | 'vehicle' | 'artifact';
+  type: 'item' | 'building' | 'tool' | 'weapon' | 'vehicle' | 'artifact' | 'magical' | 'enchanted';
   tags: string[];
   abilities: string[];
   energyRequirements: number;
   origin: string; // ID of civilization or region
   yearCreated: number;
   materials: string[];
+  // For magical items
+  enchantments?: string[]; // IDs of enchantments
+  magicalProperties?: MagicalItemProperties; // Magic-specific properties
   metadata: Record<string, any>; // Flexible schema for custom properties
 }
