@@ -1,20 +1,23 @@
-// Export all icons from this file
-export { ChevronRight } from './ChevronRight';
-export { Globe } from './Globe';
-export { Search } from './Search';
-export { Filter } from './Filter';
-export { PlusCircle } from './PlusCircle';
-export { Settings } from './Settings';
-export { User } from './User';
-export { Menu } from './Menu';
-export { Bell } from './Bell';
-export { Package } from './Package';
-export { GitBranch } from './GitBranch';
-export { Network } from './Network';
-export { Map } from './Map';
-export { Palette } from './Palette';
-export { BookOpen } from './BookOpen';
-export { Library } from './Library';
-export { Sun } from './Sun';
-export { Moon } from './Moon';
-export { Atom } from './Atom';
+// Re-export all icons from react-icons
+export {
+  FaChevronRight,
+  FaGlobe,
+  FaSearch,
+  FaFilter,
+  FaPlusCircle,
+  FaSettings,
+  FaUser,
+  FaMenu,
+  FaBell,
+  FaBox,
+  FaCode,
+  FaNetworkWired,
+  FaMap,
+  FaPalette,
+  FaBook,
+  FaDatabase,
+  FaPlus,
+  FaCog,
+  FaBars,
+  FaAtom
+} from 'react-icons/fa';
