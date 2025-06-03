@@ -2,30 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --cosmic-blue: #0F172A;
-  --nebula-purple: #7E22CE;
-  --stellar-gold: #F59E0B;
-  --terra-green: #10B981;
-  --ember-red: #EF4444;
+  --cosmic-deepest: #090C15;
+  --cosmic-deep: #0F172A;
+  --cosmic-medium: #1E293B;
+  --cosmic-light: #334155;
+  
+  --flame-blue: #3B82F6;
+  --flame-cyan: #06B6D4;
+  --flame-orange: #F59E0B;
+  --flame-red: #EF4444;
+  
+  --glyph-primary: #E2E8F0;
+  --glyph-bright: #F8FAFC;
+  --glyph-accent: #94A3B8;
+  
+  --circuit-energy: #8B5CF6;
+  --circuit-magic: #EC4899;
 }
 
 html, body {
-  @apply bg-gray-900 text-white;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
-    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  @apply bg-cosmic-deepest text-glyph-primary;
+  font-family: 'Inter', sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cosmic-light) var(--cosmic-deep);
 }
 
-/* Custom animation for particles */
+/* Custom animation for floating fire pots */
 @keyframes float {
   0% {
-    transform: translateY(0) translateX(0);
+    transform: translateY(0) rotate(0deg);
+    filter: brightness(1);
   }
-  50% {
-    transform: translateY(-10px) translateX(5px);
+  33% {
+    transform: translateY(-8px) rotate(-1deg);
+    filter: brightness(1.2);
+  }
+  66% {
+    transform: translateY(4px) rotate(1deg);
+    filter: brightness(0.9);
   }
   100% {
-    transform: translateY(0) translateX(0);
+    transform: translateY(0) rotate(0deg);
+    filter: brightness(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.7;
+    filter: blur(8px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(12px);
+  }
+}
+
+@keyframes circuit-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 
@@ -33,26 +77,122 @@ html, body {
   animation: float 8s ease-in-out infinite;
 }
 
-/* Additional gray shade for UI components */
-.bg-gray-750 {
-  background-color: #252d3d;
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-circuit-flow {
+  background-size: 200% 200%;
+  animation: circuit-flow 8s linear infinite;
+}
+
+/* Flame pot styling */
+.flame-pot {
+  @apply relative rounded-full overflow-hidden;
+  box-shadow: 0 0 25px 5px rgba(59, 130, 246, 0.3), 0 0 15px 3px rgba(245, 158, 11, 0.2);
+}
+
+.flame-pot::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-flame-blue via-flame-cyan to-flame-orange opacity-80;
+  filter: blur(4px);
+}
+
+.flame-pot::after {
+  content: '';
+  @apply absolute inset-2 bg-gradient-to-br from-flame-blue via-transparent to-flame-orange opacity-90;
+  filter: blur(2px);
+}
+
+/* Glyph styling */
+.glyph {
+  @apply text-glyph-primary relative;
+}
+
+.glyph::after {
+  content: '';
+  @apply absolute inset-0 bg-glyph-accent opacity-10;
+  mask-image: url('/patterns/circuit.svg');
+  mask-size: cover;
+}
+
+/* Glass panel styling */
+.glass-panel {
+  @apply bg-cosmic-deep bg-opacity-40 backdrop-blur-md border border-cosmic-light border-opacity-20 rounded-lg;
+  box-shadow: inset 0 0 20px rgba(226, 232, 240, 0.05);
+}
+
+/* Loreum title styling */
+.loreum-title {
+  @apply font-serif text-4xl tracking-wider;
+  text-shadow: 0 0 10px rgba(226, 232, 240, 0.5);
+}
+
+/* Circuit lines */
+.circuit-line {
+  @apply h-px bg-gradient-to-r from-circuit-energy to-circuit-magic animate-circuit-flow;
+}
+
+/* Vertical circuit lines */
+.circuit-line-v {
+  @apply w-px bg-gradient-to-b from-circuit-energy to-circuit-magic animate-circuit-flow;
 }
 
 /* Scroll styles */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a202c;
+  background: var(--cosmic-deep);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a5568;
-  border-radius: 4px;
+  background: var(--cosmic-light);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7e22ce;
+  background: var(--circuit-energy);
+}
+
+/* Focus styles */
+*:focus {
+  outline: none;
+  @apply ring-2 ring-flame-blue ring-opacity-70;
+}
+
+/* Buttons */
+.btn-cosmic {
+  @apply px-4 py-2 bg-cosmic-medium hover:bg-cosmic-light text-glyph-primary rounded-md transition-all duration-200;
+  text-shadow: 0 0 5px rgba(226, 232, 240, 0.3);
+}
+
+.btn-glowing {
+  @apply px-4 py-2 bg-gradient-to-r from-flame-blue to-flame-cyan text-glyph-bright rounded-md transition-all duration-200;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.btn-glowing:hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+
+/* Layout components */
+.cosmic-sidebar {
+  @apply bg-cosmic-deep border-r border-cosmic-light border-opacity-20;
+  box-shadow: inset -5px 0 20px rgba(9, 12, 21, 0.5);
+}
+
+.cosmic-header {
+  @apply bg-cosmic-deep border-b border-cosmic-light border-opacity-20;
+  box-shadow: 0 5px 15px rgba(9, 12, 21, 0.5);
+}
+
+/* Main content area */
+.cosmic-workshop {
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, var(--cosmic-medium) 0%, var(--cosmic-deep) 40%, var(--cosmic-deepest) 100%);
 }
