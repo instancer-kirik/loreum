@@ -1,9 +1,41 @@
 import React from 'react';
-import { FaAtom, FaBars, FaSearch, FaBell, FaCog, FaUser, FaStar, FaFlask } from 'react-icons/fa';
+import { FaAtom, FaBars, FaSearch, FaBell, FaCog, FaUser, FaStar, FaFlask, FaChevronRight } from 'react-icons/fa';
 import { useAppContext } from '../context/AppContext';
 
 export const HeaderAlt: React.FC = () => {
-  const { currentProject } = useAppContext();
+  const { navigationContext, getBreadcrumbs, currentMultiverse, currentUniverse, currentTimeline, currentWorld } = useAppContext();
+  const breadcrumbs = getBreadcrumbs();
+
+  const getContextualTitle = () => {
+    switch (navigationContext.level) {
+      case 'multiverse':
+        return 'Multiverse Explorer';
+      case 'universe':
+        return currentUniverse ? `Universe: ${currentUniverse.name}` : 'Universe Selection';
+      case 'timeline':
+        return currentTimeline ? `Timeline: ${currentTimeline.name}` : 'Timeline Selection';
+      case 'world':
+        return currentWorld ? `World: ${currentWorld.name}` : 'World Selection';
+      case 'civilization':
+        return 'Civilization Builder';
+      case 'ipsumarium':
+        return 'Template Vault';
+      case 'characters':
+        return 'Character Studio';
+      case 'lore':
+        return 'Lore Graph';
+      case 'astraloom':
+        return 'Star Navigator';
+      case 'narrative':
+        return 'Narrative Layer';
+      case 'artboard':
+        return 'Visual Studio';
+      case 'config':
+        return 'System Configuration';
+      default:
+        return 'Loreum Workshop';
+    }
+  };
 
   return (
     <header className="cosmic-header py-4 px-6 relative z-20">
@@ -26,12 +58,23 @@ export const HeaderAlt: React.FC = () => {
             <h1 className="loreum-title text-glyph-bright">Loreum</h1>
           </div>
           
-          {currentProject && (
-            <div className="hidden md:flex items-center ml-6 space-x-2">
-              <span className="text-glyph-accent font-serif">Project:</span>
-              <span className="font-medium text-glyph-bright font-serif tracking-wide">{currentProject.name}</span>
-            </div>
-          )}
+          {/* Contextual breadcrumb display */}
+          <div className="hidden md:flex items-center ml-6 space-x-2">
+            <span className="text-glyph-accent font-serif">{getContextualTitle()}</span>
+            {breadcrumbs.length > 0 && (
+              <>
+                <FaChevronRight className="text-glyph-accent" size={12} />
+                <div className="flex items-center space-x-1">
+                  {breadcrumbs.map((crumb, index) => (
+                    <React.Fragment key={crumb.id}>
+                      {index > 0 && <FaChevronRight className="text-glyph-accent" size={10} />}
+                      <span className="text-glyph-bright font-serif text-sm">{crumb.name}</span>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center space-x-5">
@@ -41,7 +84,7 @@ export const HeaderAlt: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Search cosmic knowledge..."
+              placeholder={`Search ${navigationContext.level}...`}
               className="glass-panel py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-1 focus:ring-flame-blue text-glyph-primary bg-cosmic-medium bg-opacity-40"
             />
           </div>

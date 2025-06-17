@@ -18,6 +18,117 @@ export type {
   MagicTechnology
 };
 
+// Core hierarchy types based on Loreum design
+export interface Multiverse {
+  id: string;
+  name: string;
+  description: string;
+  universes: Universe[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Universe {
+  id: string;
+  name: string;
+  description: string;
+  physicalLaws: PhysicalLaws;
+  timelines: Timeline[];
+  multiverseId: string;
+}
+
+export interface PhysicalLaws {
+  id: string;
+  name: string;
+  description: string;
+  constants: Record<string, number>;
+  magicSystemsAllowed: boolean;
+  technologyLimits: string[];
+}
+
+export interface Timeline {
+  id: string;
+  name: string;
+  description: string;
+  startYear: number;
+  endYear: number | null;
+  worlds: World[];
+  universeId: string;
+  forkPoint?: {
+    parentTimelineId: string;
+    divergenceYear: number;
+    divergenceEvent: string;
+  };
+}
+
+export interface World {
+  id: string;
+  name: string;
+  description: string;
+  type: 'planet' | 'ringworld' | 'dyson_sphere' | 'habitat' | 'station' | 'other';
+  civilizations: Civilization[];
+  regions: Region[];
+  timelineId: string;
+}
+
+// Ipsumarium - Template/Canonical entities
+export interface IpsumTemplate {
+  id: string;
+  name: string;
+  description: string;
+  type: 'species' | 'tech' | 'item' | 'power' | 'vehicle' | 'starship' | 'culture' | 'civilization';
+  tags: string[];
+  metadata: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SpeciesTemplate extends IpsumTemplate {
+  type: 'species';
+  biology: string;
+  traits: string[];
+  averageLifespan: number;
+  reproductionMethod: string;
+  socialStructure: string;
+  intelligence: number; // 0-100 scale
+  physicalCapabilities: Record<string, number>;
+}
+
+export interface TechTemplate extends IpsumTemplate {
+  type: 'tech';
+  tier: number;
+  energyType: string;
+  dependencies: string[];
+  effects: TechEffect[];
+  discoveryDifficulty: number;
+  implementationCost: number;
+}
+
+export interface ItemTemplate extends IpsumTemplate {
+  type: 'item';
+  category: string;
+  subcategory: string;
+  rarity: string;
+  durability: number;
+  manufacturingCost: number;
+  energyRequirements: number;
+  materials: string[];
+  effects: string[];
+  magicalProperties?: MagicalItemProperties;
+}
+
+// Navigation structure types
+export type NavigationLevel = 'multiverse' | 'universe' | 'timeline' | 'world' | 'civilization' | 'ipsumarium' | 'characters' | 'lore' | 'astraloom' | 'narrative' | 'artboard' | 'config';
+
+export interface NavigationContext {
+  level: NavigationLevel;
+  multiverseId?: string;
+  universeId?: string;
+  timelineId?: string;
+  worldId?: string;
+  civilizationId?: string;
+}
+
 // Adding the new item-related types at the top
 export interface TechItem {
   id: string;
@@ -440,4 +551,103 @@ export interface ModularItem {
   enchantments?: string[]; // IDs of enchantments
   magicalProperties?: MagicalItemProperties; // Magic-specific properties
   metadata: Record<string, any>; // Flexible schema for custom properties
+}
+
+// Character types
+export interface Character {
+  id: string;
+  name: string;
+  description: string;
+  species: string; // Reference to species template
+  birthYear: number;
+  deathYear?: number;
+  affiliations: string[]; // Civilization/faction IDs
+  relationships: CharacterRelationship[];
+  abilities: string[];
+  equipment: string[]; // Item IDs
+  voiceProfile?: VoiceProfile;
+  narrativeRoles: string[];
+  tags: string[];
+}
+
+export interface CharacterRelationship {
+  id: string;
+  targetCharacterId: string;
+  relationshipType: string;
+  description: string;
+  startYear: number;
+  endYear?: number;
+}
+
+export interface VoiceProfile {
+  id: string;
+  actorName?: string;
+  voiceDescription: string;
+  speechPatterns: string[];
+  catchphrases: string[];
+  languageStyle: string;
+}
+
+// Lore Graph types
+export interface LoreNode {
+  id: string;
+  name: string;
+  description: string;
+  type: 'event' | 'character' | 'artifact' | 'ideology' | 'location' | 'technology' | 'species';
+  year?: number;
+  connections: LoreConnection[];
+  causality: CausalityInfo;
+}
+
+export interface CausalityInfo {
+  causes: string[]; // Node IDs that caused this
+  effects: string[]; // Node IDs this caused
+  probability: number; // 0-1 likelihood this occurred
+  rippleEffects: RippleEffect[];
+}
+
+export interface RippleEffect {
+  id: string;
+  targetNodeId: string;
+  delay: number; // Years after original event
+  magnitude: number; // 0-1 strength of effect
+  description: string;
+}
+
+// Astraloom types
+export interface StarSystem {
+  id: string;
+  name: string;
+  description: string;
+  coordinates: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  starType: string;
+  planets: Planet[];
+  travelRoutes: TravelRoute[];
+  controllingFaction?: string;
+}
+
+export interface Planet {
+  id: string;
+  name: string;
+  description: string;
+  type: 'terrestrial' | 'gas_giant' | 'ice_world' | 'desert' | 'ocean' | 'artificial';
+  habitability: number; // 0-1 scale
+  population?: number;
+  resources: Resource[];
+  settlements: Settlement[];
+}
+
+export interface TravelRoute {
+  id: string;
+  name: string;
+  fromSystemId: string;
+  toSystemId: string;
+  distance: number; // Light years
+  travelTime: number; // Standard time units
+  hazards: string[];
+  controllingFaction?: string;
 }

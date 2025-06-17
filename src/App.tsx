@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Layout } from './components/Layout';
 import { DashboardAlt } from './pages/DashboardAlt';
+import { MultiverseExplorer } from './pages/MultiverseExplorer';
+import { IpsumariumVault } from './pages/IpsumariumVault';
 import { CivilizationBuilder } from './pages/CivilizationBuilder';
 import { TechTreeDesigner } from './pages/TechTreeDesigner';
 import { LoreGraph } from './pages/LoreGraph';
@@ -10,7 +12,7 @@ import { CultureDesigner } from './pages/CultureDesigner';
 import { NarrativeLayer } from './pages/NarrativeLayer';
 import { ItemEditor } from './pages/ItemEditor';
 import { AssetManager } from './pages/AssetManager';
-import { AppContext } from './context/AppContext';
+import { AppContextProvider } from './context/AppContext';
 import { Project } from './types';
 
 function App() {
@@ -24,6 +26,10 @@ function App() {
           setCurrentProject(project);
           setCurrentPage('civilization');
         }} />;
+      case 'multiverse':
+        return <MultiverseExplorer />;
+      case 'ipsumarium':
+        return <IpsumariumVault />;
       case 'civilization':
         return <CivilizationBuilder />;
       case 'tech-tree':
@@ -43,24 +49,16 @@ function App() {
       case 'assets':
         return <AssetManager />;
       default:
-        return <DashboardAlt onSelectProject={(project) => {
-          setCurrentProject(project);
-          setCurrentPage('civilization');
-        }} />;
+        return <MultiverseExplorer />;
     }
   };
 
   return (
-    <AppContext.Provider value={{ 
-      currentProject, 
-      setCurrentProject,
-      currentPage,
-      setCurrentPage
-    }}>
+    <AppContextProvider>
       <Layout>
         {renderPage()}
       </Layout>
-    </AppContext.Provider>
+    </AppContextProvider>
   );
 }
 
