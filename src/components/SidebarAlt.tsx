@@ -49,6 +49,14 @@ export const SidebarAlt: React.FC = () => {
           { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ipsumarium', disabled: false },
         ];
       
+      case 'astraloom':
+        return [
+          ...baseItems,
+          { id: 'astraloom', icon: <FaRocket size={18} />, label: 'Star Systems', disabled: false },
+          { id: 'universe', icon: <FaGlobe size={18} />, label: 'Universe Explorer', disabled: false },
+          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ship Templates', disabled: false },
+        ];
+      
       case 'timeline':
         return [
           ...baseItems,
@@ -73,6 +81,23 @@ export const SidebarAlt: React.FC = () => {
           { id: 'culture', icon: <FaPalette size={18} />, label: 'Culture', disabled: false },
           { id: 'items', icon: <FaBox size={18} />, label: 'Items', disabled: false },
           { id: 'assets', icon: <FaDatabase size={18} />, label: 'Asset Manager', disabled: false },
+        ];
+      
+      case 'characters':
+        return [
+          ...baseItems,
+          { id: 'characters', icon: <FaTheaterMasks size={18} />, label: 'Characters', disabled: false },
+          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Templates', disabled: false },
+          { id: 'narrative', icon: <FaBook size={18} />, label: 'Narrative', disabled: false },
+          { id: 'artboard', icon: <FaPaintBrush size={18} />, label: 'Artboard', disabled: false },
+        ];
+      
+      case 'config':
+        return [
+          ...baseItems,
+          { id: 'config', icon: <FaCog size={18} />, label: 'System Settings', disabled: false },
+          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Template Config', disabled: false },
+          { id: 'assets', icon: <FaBox size={18} />, label: 'Export/Import', disabled: false },
         ];
       
       default:

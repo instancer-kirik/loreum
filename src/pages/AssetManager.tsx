@@ -3,13 +3,13 @@ import { AssetDesigner } from '../components/AssetDesigner';
 import { Box, Book, LayoutGrid, List } from 'lucide-react';
 
 type ViewMode = 'grid' | 'list';
-type AssetType = 'all' | 'tech' | 'item' | 'magic' | 'enchantment';
+type AssetType = 'all' | 'tech' | 'item';
 
 export const AssetManager: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [assetType, setAssetType] = useState<AssetType>('all');
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
-  const [designerInitialMode, setDesignerInitialMode] = useState<'tech' | 'item' | 'magic' | 'enchantment'>('tech');
+  const [designerInitialMode, setDesignerInitialMode] = useState<'tech' | 'item'>('tech');
 
   // Mock assets for demonstration
   const mockAssets = [
@@ -17,10 +17,6 @@ export const AssetManager: React.FC = () => {
     { id: 'tech2', name: 'Graviton Manipulation', type: 'tech', description: 'Control of gravity fields' },
     { id: 'item1', name: 'Plasma Rifle', type: 'item', description: 'Energy-based projectile weapon' },
     { id: 'item2', name: 'Neural Interface', type: 'item', description: 'Direct brain-computer connection' },
-    { id: 'magic1', name: 'Arcane Manifestation', type: 'magic', description: 'Fundamental magical energy manipulation' },
-    { id: 'magic2', name: 'Elemental Binding', type: 'magic', description: 'Control over natural elements' },
-    { id: 'enchant1', name: 'Quantum Stabilization', type: 'enchantment', description: 'Maintains quantum coherence' },
-    { id: 'enchant2', name: 'Elemental Attunement', type: 'enchantment', description: 'Enhances elemental affinity' },
   ];
 
   // Filter assets based on selected type
@@ -28,7 +24,7 @@ export const AssetManager: React.FC = () => {
     ? mockAssets 
     : mockAssets.filter(asset => asset.type === assetType);
 
-  const openDesigner = (mode: 'tech' | 'item' | 'magic' | 'enchantment') => {
+  const openDesigner = (mode: 'tech' | 'item') => {
     setDesignerInitialMode(mode);
     setIsDesignerOpen(true);
   };
@@ -38,8 +34,6 @@ export const AssetManager: React.FC = () => {
     switch (type) {
       case 'tech': return 'bg-blue-500';
       case 'item': return 'bg-green-500';
-      case 'magic': return 'bg-purple-500';
-      case 'enchantment': return 'bg-amber-500';
       default: return 'bg-gray-500';
     }
   };
@@ -113,24 +107,6 @@ export const AssetManager: React.FC = () => {
                 <Box className="inline-block mr-2 h-4 w-4" />
                 Items
               </button>
-              <button
-                onClick={() => setAssetType('magic')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  assetType === 'magic' ? 'bg-purple-900 bg-opacity-30 text-purple-400' : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <Book className="inline-block mr-2 h-4 w-4" />
-                Magic Systems
-              </button>
-              <button
-                onClick={() => setAssetType('enchantment')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  assetType === 'enchantment' ? 'bg-amber-900 bg-opacity-30 text-amber-400' : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <Book className="inline-block mr-2 h-4 w-4" />
-                Enchantments
-              </button>
             </div>
           </div>
           
@@ -148,18 +124,6 @@ export const AssetManager: React.FC = () => {
                 className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
               >
                 New Item
-              </button>
-              <button
-                onClick={() => openDesigner('magic')}
-                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700"
-              >
-                New Magic System
-              </button>
-              <button
-                onClick={() => openDesigner('enchantment')}
-                className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-md hover:bg-amber-700"
-              >
-                New Enchantment
               </button>
             </div>
           </div>
@@ -180,8 +144,7 @@ export const AssetManager: React.FC = () => {
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           asset.type === 'tech' ? 'bg-blue-900 bg-opacity-30 text-blue-400' :
                           asset.type === 'item' ? 'bg-green-900 bg-opacity-30 text-green-400' :
-                          asset.type === 'magic' ? 'bg-purple-900 bg-opacity-30 text-purple-400' :
-                          'bg-amber-900 bg-opacity-30 text-amber-400'
+                          'bg-gray-900 bg-opacity-30 text-gray-400'
                         }`}>
                           {asset.type}
                         </span>
@@ -211,8 +174,7 @@ export const AssetManager: React.FC = () => {
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             asset.type === 'tech' ? 'bg-blue-900 bg-opacity-30 text-blue-400' :
                             asset.type === 'item' ? 'bg-green-900 bg-opacity-30 text-green-400' :
-                            asset.type === 'magic' ? 'bg-purple-900 bg-opacity-30 text-purple-400' :
-                            'bg-amber-900 bg-opacity-30 text-amber-400'
+                            'bg-gray-900 bg-opacity-30 text-gray-400'
                           }`}>
                             {asset.type}
                           </span>

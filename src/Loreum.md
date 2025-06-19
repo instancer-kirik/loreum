@@ -27,6 +27,10 @@ Canonical templates and reusable entities:
 
 - Items/
 
+- Magic Systems/
+
+- Enchantments/
+
 - Powers/
 
 - Vehicles/
@@ -131,8 +135,8 @@ System-wide control and classification:
 |---|---|---|
 |Multiverse → Universe → Timeline|Tree|Defines scope and laws|
 |World → Civ → Culture → Region|Tree|Local expression of global Ipsumarium concepts|
-|Ipsumarium|Flat/Faceted|Tag-based filterable taxonomy|
-|Characters|Flat + Linked|Tags, relations span timelines|
+|Ipsumarium|Flat/Faceted|Tag-based filterable taxonomy (includes Magic & Enchantments)|
+|Characters|Flat + Linked|Tags, relations span timelines (managed via templates)|
 |Lore Graph|Graph|Causal forks, nonlinear, multi-parent nodes|
 |Astraloom|Graph+Tree|Stars in hierarchy, travel links as graph|
 |Narrative|Sequence|Linear or tagged sequence of story fragments|
@@ -143,8 +147,10 @@ System-wide control and classification:
 
 |Element|Connects To|Placement Strategy|
 |---|---|---|
-|Characters|Civilizations, Cultures, Worlds, Lore|Independent section + entity linking|
+|Characters|Civilizations, Cultures, Worlds, Lore|Ipsumarium templates + entity linking|
 |Cultures|Ipsumarium → World|Culture templates instanced per world|
+|Magic Systems|Tech, Items, Characters|Ipsumarium templates, referenced globally|
+|Enchantments|Items, Magic Systems, Tech|Ipsumarium templates, applied to entities|
 |Voice / Actors|Characters, Narrative|Inside Characters|
 |Quips / Banter|Characters, Narrative, Lore Graph|Nested in Characters, linkable to events|
 |Art|Characters, Tech, Civilizations|Artboard, referenced per-entity|
@@ -158,7 +164,9 @@ System-wide control and classification:
 |---|---|
 |Where does reusable data go?|Ipsumarium (template source)|
 |Where does world-specific data go?|Timeline / World / Civ layers|
-|Should Characters live in Ipsumarium?|No — they are narrative-bound|
+|Should Characters live in Ipsumarium?|As templates — then instanced per narrative context|
+|Should Magic Systems live in Ipsumarium?|Yes — reusable across worlds with local variations|
+|Should Enchantments live in Ipsumarium?|Yes — template catalog for consistent application|
 |What should be tree-structured?|Multiverse, World, Civilizational layers|
-|What’s flat/tagged?|Ipsumarium, Characters, Artboard|
-|What’s nonlinear?|Lore Graph, Astraloom, Narrative arcs|
+|What's flat/tagged?|Ipsumarium, Characters, Artboard|
+|What's nonlinear?|Lore Graph, Astraloom, Narrative arcs|

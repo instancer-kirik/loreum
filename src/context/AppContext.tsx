@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project, NavigationContext, NavigationLevel, Multiverse, Universe, Timeline, World } from '../types';
+import { multiverseService, universeService, timelineService, worldService, civilizationService, hierarchyService } from '../integrations/supabase/database';
 
 interface AppContextType {
   // Legacy project system (for backward compatibility)
@@ -22,9 +23,20 @@ interface AppContextType {
   currentWorld: World | null;
   setCurrentWorld: (world: World | null) => void;
   
+  // Data loading states
+  isLoading: boolean;
+  error: string | null;
+  
+  // Data arrays
+  multiverses: Multiverse[];
+  
   // Navigation helpers
   navigateToLevel: (level: NavigationLevel, id?: string) => void;
   getBreadcrumbs: () => Array<{ level: NavigationLevel; name: string; id?: string }>;
+  
+  // Data operations
+  loadMultiverses: () => Promise<void>;
+  createHierarchy: (data: any) => Promise<{ multiverse: Multiverse; universe: Universe; timeline: Timeline; world: World }>;
 }
 
 export const AppContext = createContext<AppContextType>({
@@ -42,8 +54,13 @@ export const AppContext = createContext<AppContextType>({
   setCurrentTimeline: () => {},
   currentWorld: null,
   setCurrentWorld: () => {},
+  isLoading: false,
+  error: null,
+  multiverses: [],
   navigateToLevel: () => {},
   getBreadcrumbs: () => [],
+  loadMultiverses: async () => {},
+  createHierarchy: async () => ({ multiverse: {} as Multiverse, universe: {} as Universe, timeline: {} as Timeline, world: {} as World }),
 });
 
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,50 +75,128 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [currentTimeline, setCurrentTimeline] = useState<Timeline | null>(null);
   const [currentWorld, setCurrentWorld] = useState<World | null>(null);
   
-  const navigateToLevel = (level: NavigationLevel, id?: string) => {
+  // Data loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [multiverses, setMultiverses] = useState<Multiverse[]>([]);
+  
+  // Load multiverses on mount
+  useEffect(() => {
+    loadMultiverses();
+  }, []);
+
+  const loadMultiverses = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await multiverseService.getAll();
+      setMultiverses(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load multiverses');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createHierarchy = async (data: {
+    multiverseName: string;
+    multiverseDescription: string;
+    universeName: string;
+    universeDescription: string;
+    timelineName: string;
+    timelineDescription: string;
+    timelineStartYear: number;
+    timelineEndYear?: number;
+    worldName: string;
+    worldDescription: string;
+    worldType: string;
+  }) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Create the complete hierarchy
+      const result = await hierarchyService.createCompleteHierarchy(data);
+      
+      // Update local state
+      setCurrentMultiverse(result.multiverse);
+      setCurrentUniverse(result.universe);
+      setCurrentTimeline(result.timeline);
+      setCurrentWorld(result.world);
+      
+      // Reload multiverses to include the new one
+      await loadMultiverses();
+      
+      return result;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create hierarchy');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const navigateToLevel = async (level: NavigationLevel, id?: string) => {
     const newContext: NavigationContext = { level };
     
-    switch (level) {
-      case 'multiverse':
-        setCurrentMultiverse(null);
-        setCurrentUniverse(null);
-        setCurrentTimeline(null);
-        setCurrentWorld(null);
-        break;
-      case 'universe':
-        if (id) newContext.multiverseId = currentMultiverse?.id;
-        setCurrentUniverse(null);
-        setCurrentTimeline(null);
-        setCurrentWorld(null);
-        break;
-      case 'timeline':
-        if (id) {
-          newContext.multiverseId = currentMultiverse?.id;
-          newContext.universeId = currentUniverse?.id;
-        }
-        setCurrentTimeline(null);
-        setCurrentWorld(null);
-        break;
-      case 'world':
-        if (id) {
-          newContext.multiverseId = currentMultiverse?.id;
-          newContext.universeId = currentUniverse?.id;
-          newContext.timelineId = currentTimeline?.id;
-        }
-        setCurrentWorld(null);
-        break;
-      case 'civilization':
-        if (id) {
-          newContext.multiverseId = currentMultiverse?.id;
-          newContext.universeId = currentUniverse?.id;
-          newContext.timelineId = currentTimeline?.id;
-          newContext.worldId = currentWorld?.id;
-        }
-        break;
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      switch (level) {
+        case 'multiverse':
+          setCurrentMultiverse(null);
+          setCurrentUniverse(null);
+          setCurrentTimeline(null);
+          setCurrentWorld(null);
+          break;
+        case 'universe':
+          if (id && currentMultiverse) {
+            newContext.multiverseId = currentMultiverse.id;
+            const universes = await universeService.getByMultiverseId(currentMultiverse.id);
+            const universe = universes.find(u => u.id === id);
+            if (universe) setCurrentUniverse(universe);
+          }
+          setCurrentTimeline(null);
+          setCurrentWorld(null);
+          break;
+        case 'timeline':
+          if (id && currentUniverse) {
+            newContext.multiverseId = currentMultiverse?.id;
+            newContext.universeId = currentUniverse.id;
+            const timelines = await timelineService.getByUniverseId(currentUniverse.id);
+            const timeline = timelines.find(t => t.id === id);
+            if (timeline) setCurrentTimeline(timeline);
+          }
+          setCurrentWorld(null);
+          break;
+        case 'world':
+          if (id && currentTimeline) {
+            newContext.multiverseId = currentMultiverse?.id;
+            newContext.universeId = currentUniverse?.id;
+            newContext.timelineId = currentTimeline.id;
+            const worlds = await worldService.getByTimelineId(currentTimeline.id);
+            const world = worlds.find(w => w.id === id);
+            if (world) setCurrentWorld(world);
+          }
+          break;
+        case 'civilization':
+          if (currentWorld) {
+            newContext.multiverseId = currentMultiverse?.id;
+            newContext.universeId = currentUniverse?.id;
+            newContext.timelineId = currentTimeline?.id;
+            newContext.worldId = currentWorld.id;
+          }
+          break;
+      }
+      
+      setNavigationContext(newContext);
+      setCurrentPage(level);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Navigation failed');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setNavigationContext(newContext);
-    setCurrentPage(level);
   };
   
   const getBreadcrumbs = () => {
@@ -139,8 +234,13 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setCurrentTimeline,
       currentWorld,
       setCurrentWorld,
+      isLoading,
+      error,
+      multiverses,
       navigateToLevel,
       getBreadcrumbs,
+      loadMultiverses,
+      createHierarchy,
     }}>
       {children}
     </AppContext.Provider>

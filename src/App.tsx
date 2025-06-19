@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Layout } from './components/Layout';
 import { DashboardAlt } from './pages/DashboardAlt';
 import { MultiverseExplorer } from './pages/MultiverseExplorer';
@@ -12,22 +12,26 @@ import { CultureDesigner } from './pages/CultureDesigner';
 import { NarrativeLayer } from './pages/NarrativeLayer';
 import { ItemEditor } from './pages/ItemEditor';
 import { AssetManager } from './pages/AssetManager';
-import { AppContextProvider } from './context/AppContext';
+import { AppContextProvider, useAppContext } from './context/AppContext';
 import { Project } from './types';
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+function AppContent() {
+  const { currentPage } = useAppContext();
 
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
         return <DashboardAlt onSelectProject={(project) => {
-          setCurrentProject(project);
-          setCurrentPage('civilization');
+          // Legacy support - this will be handled by the new navigation system
         }} />;
       case 'multiverse':
         return <MultiverseExplorer />;
+      case 'universe':
+        return <MultiverseExplorer />; // For now, reuse the explorer
+      case 'timeline':
+        return <MultiverseExplorer />; // For now, reuse the explorer
+      case 'world':
+        return <MultiverseExplorer />; // For now, reuse the explorer
       case 'ipsumarium':
         return <IpsumariumVault />;
       case 'civilization':
@@ -48,16 +52,30 @@ function App() {
         return <ItemEditor />;
       case 'assets':
         return <AssetManager />;
+      case 'characters':
+        return <IpsumariumVault />; // Characters are managed through templates
+      case 'astraloom':
+        return <MultiverseExplorer />; // Star navigation through multiverse
+      case 'artboard':
+        return <AssetManager />; // Visual assets remain here
+      case 'config':
+        return <IpsumariumVault />; // Configuration templates
       default:
-        return <MultiverseExplorer />;
+        return <DashboardAlt onSelectProject={() => {}} />;
     }
   };
 
   return (
+    <Layout>
+      {renderPage()}
+    </Layout>
+  );
+}
+
+function App() {
+  return (
     <AppContextProvider>
-      <Layout>
-        {renderPage()}
-      </Layout>
+      <AppContent />
     </AppContextProvider>
   );
 }
