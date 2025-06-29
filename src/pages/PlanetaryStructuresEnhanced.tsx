@@ -13,8 +13,12 @@ import {
   Camera,
   Orbit,
   ChevronDown,
-  X
+  X,
+  Database,
+  Link
 } from 'lucide-react';
+import { ipsumariumService, templateInstanceService } from '../integrations/supabase/database';
+import { IpsumTemplate, TemplateInstanceWithTemplate } from '../types';
 
 interface StructureData {
   id: string;
@@ -40,9 +44,16 @@ export const PlanetaryStructuresEnhanced: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'form' | '3d' | 'specs'>('form');
+  const [viewSource, setViewSource] = useState<'all' | 'templates' | 'instances'>('all');
   const [newStructure, setNewStructure] = useState<StructureData | null>(null);
   const [showNewStructureForm, setShowNewStructureForm] = useState(false);
   const [structures, setStructures] = useState<StructureData[]>([]);
+  
+  // Template data
+  const [structureTemplates, setStructureTemplates] = useState<IpsumTemplate[]>([]);
+  const [structureInstances, setStructureInstances] = useState<TemplateInstanceWithTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const categories = [
     {
@@ -114,6 +125,37 @@ export const PlanetaryStructuresEnhanced: React.FC = () => {
       }
     }
   ];
+
+  // Load template data
+  useEffect(() => {
+    loadStructureData();
+  }, []);
+
+  const loadStructureData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [templatesData, instancesData] = await Promise.all([
+        ipsumariumService.getAll().then(data => data.filter(t => 
+          t.type === 'structure' || t.tags.some(tag => 
+            ['ringworld', 'dyson_sphere', 'habitat', 'terraforming', 'megastructure'].includes(tag)
+          )
+        )).catch(() => []),
+        templateInstanceService.getAll().then(data => data.filter(i => 
+          i.template.type === 'structure' || i.template.tags.some(tag => 
+            ['ringworld', 'dyson_sphere', 'habitat', 'terraforming', 'megastructure'].includes(tag)
+          )
+        )).catch(() => [])
+      ]);
+      setStructureTemplates(templatesData);
+      setStructureInstances(instancesData);
+    } catch (err) {
+      console.error('Failed to load structure data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load structure data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initialize new structure when category changes
   useEffect(() => {
@@ -532,9 +574,45 @@ export const PlanetaryStructuresEnhanced: React.FC = () => {
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           </div>
           
+          {/* Source Filter */}
+          <div className="mb-4">
+            <h3 className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Source</h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => setViewSource('all')}
+                className={`w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                  viewSource === 'all' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                All Sources
+                <span className="ml-auto text-xs">{structureTemplates.length + structureInstances.length}</span>
+              </button>
+              <button
+                onClick={() => setViewSource('templates')}
+                className={`w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                  viewSource === 'templates' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <Database size={14} className="mr-2" />
+                Templates
+                <span className="ml-auto text-xs">{structureTemplates.length}</span>
+              </button>
+              <button
+                onClick={() => setViewSource('instances')}
+                className={`w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                  viewSource === 'instances' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <Link size={14} className="mr-2" />
+                Instances
+                <span className="ml-auto text-xs">{structureInstances.length}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gray-400">STRUCTURE TYPES</h2>
-            <button className="text-gray-400 hover:text-white">
+            <h2 className="text-sm font-medium text-gray-400">STRUCTURE CATEGORIES</h2>
+            <button className="text-gray-400 hover:text-white" onClick={loadStructureData}>
               <Filter size={16} />
             </button>
           </div>

@@ -178,6 +178,61 @@ CREATE TABLE IF NOT EXISTS loreum_star_systems (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS loreum_magic_systems (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    rules JSONB DEFAULT '{}',
+    source TEXT NOT NULL, -- e.g. "aetheric", "divine", "ritual"
+    structure TEXT NOT NULL, -- e.g. "school-based", "domain-based", "freeform"
+    tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS loreum_enchantments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    effect JSONB DEFAULT '{}',
+    item_tags TEXT[] DEFAULT '{}', -- tags of items it can be applied to
+    associated_magic_system UUID REFERENCES loreum_magic_systems(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS loreum_character_instances (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    character_id UUID NOT NULL REFERENCES loreum_characters(id) ON DELETE CASCADE,
+    timeline_id UUID NOT NULL REFERENCES loreum_timelines(id) ON DELETE CASCADE,
+    variation_notes TEXT,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS loreum_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    type TEXT NOT NULL, -- weapon, artifact, tool, etc
+    tags TEXT[] DEFAULT '{}',
+    enchantments JSONB DEFAULT '[]',
+    associated_tech UUID REFERENCES loreum_tech_trees(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS loreum_powers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    power_type TEXT NOT NULL, -- innate, acquired, tech-based
+    requirements JSONB DEFAULT '{}',
+    tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_loreum_universes_multiverse_id ON loreum_universes(multiverse_id);
@@ -231,6 +286,6 @@ CREATE TRIGGER update_loreum_star_systems_updated_at BEFORE UPDATE ON loreum_sta
 -- ALTER TABLE loreum_star_systems ENABLE ROW LEVEL SECURITY;
 
 -- Insert sample data for testing
-INSERT INTO loreum_multiverses (name, description) VALUES 
+INSERT INTO loreum_multiverses (name, description) VALUES
 ('Aether Spiral', 'A vast multiverse where the fundamental forces of reality spiral through dimensions, creating infinite possibilities for worlds and civilizations.')
 ON CONFLICT DO NOTHING;

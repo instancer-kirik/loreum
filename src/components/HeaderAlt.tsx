@@ -1,10 +1,28 @@
-import React from 'react';
-import { FaAtom, FaBars, FaSearch, FaBell, FaCog, FaUser, FaStar, FaFlask, FaChevronRight } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaAtom, FaBars, FaSearch, FaBell, FaCog, FaUser, FaStar, FaFlask, FaChevronRight, FaSignOutAlt } from 'react-icons/fa';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 
 export const HeaderAlt: React.FC = () => {
-  const { navigationContext, getBreadcrumbs, currentMultiverse, currentUniverse, currentTimeline, currentWorld } = useAppContext();
+  const { navigationContext, getBreadcrumbs, currentMultiverse, currentUniverse, currentTimeline, currentWorld, setCurrentPage } = useAppContext();
+  const { user, signOut } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const breadcrumbs = getBreadcrumbs();
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const getContextualTitle = () => {
     switch (navigationContext.level) {
@@ -89,24 +107,76 @@ export const HeaderAlt: React.FC = () => {
             />
           </div>
           
-          <button className="text-glyph-accent hover:text-flame-blue transition-colors relative">
+          <button 
+            className="text-glyph-accent hover:text-flame-blue transition-colors relative"
+            title="Favorites"
+          >
             <FaStar size={20} />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-flame-orange rounded-full"></span>
           </button>
           
-          <button className="text-glyph-accent hover:text-flame-blue transition-colors">
+          <button 
+            className="text-glyph-accent hover:text-flame-blue transition-colors"
+            onClick={() => setCurrentPage('debug-supabase')}
+            title="Debug Tools"
+          >
             <FaFlask size={20} />
           </button>
           
-          <button className="text-glyph-accent hover:text-flame-blue transition-colors">
+          <button 
+            className="text-glyph-accent hover:text-flame-blue transition-colors"
+            onClick={() => setCurrentPage('config')}
+            title="Settings"
+          >
             <FaCog size={20} />
           </button>
           
-          <div className="relative">
-            <div className="absolute inset-0 bg-circuit-energy rounded-full blur-sm opacity-50"></div>
-            <div className="relative w-9 h-9 rounded-full bg-cosmic-medium flex items-center justify-center border border-cosmic-light">
-              <FaUser className="text-glyph-bright" size={16} />
-            </div>
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="relative group"
+              title={user ? user.email : 'Account'}
+            >
+              <div className="absolute inset-0 bg-circuit-energy rounded-full blur-sm opacity-50 group-hover:opacity-70 transition-opacity"></div>
+              <div className="relative w-9 h-9 rounded-full bg-cosmic-medium flex items-center justify-center border border-cosmic-light group-hover:border-flame-blue transition-colors">
+                <FaUser className="text-glyph-bright" size={16} />
+              </div>
+            </button>
+            
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 glass-panel border border-cosmic-light border-opacity-30 rounded-lg py-2 z-50">
+                <div className="px-4 py-2 border-b border-cosmic-light border-opacity-20">
+                  <p className="text-sm text-glyph-bright font-medium">
+                    {user ? user.email : 'Not signed in'}
+                  </p>
+                  <p className="text-xs text-glyph-accent">
+                    {user ? 'Authenticated' : 'Debug Mode'}
+                  </p>
+                </div>
+                <button
+                  className="w-full px-4 py-2 text-left text-sm text-glyph-accent hover:text-glyph-bright hover:bg-cosmic-medium hover:bg-opacity-50 transition-colors flex items-center"
+                  onClick={() => {
+                    setCurrentPage('debug-supabase');
+                    setShowUserMenu(false);
+                  }}
+                >
+                  <FaFlask className="mr-2" size={14} />
+                  Debug Database
+                </button>
+                {user && (
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm text-glyph-accent hover:text-glyph-bright hover:bg-cosmic-medium hover:bg-opacity-50 transition-colors flex items-center"
+                    onClick={async () => {
+                      await signOut();
+                      setShowUserMenu(false);
+                    }}
+                  >
+                    <FaSignOutAlt className="mr-2" size={14} />
+                    Sign Out
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

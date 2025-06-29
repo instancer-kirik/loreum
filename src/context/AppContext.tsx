@@ -9,6 +9,10 @@ interface AppContextType {
   currentPage: string;
   setCurrentPage: (page: string) => void;
   
+  // Mobile navigation state
+  isMobileSidebarOpen: boolean;
+  setIsMobileSidebarOpen: (isOpen: boolean) => void;
+  
   // New hierarchical navigation system
   navigationContext: NavigationContext;
   setNavigationContext: (context: NavigationContext) => void;
@@ -44,6 +48,8 @@ export const AppContext = createContext<AppContextType>({
   setCurrentProject: () => {},
   currentPage: 'dashboard',
   setCurrentPage: () => {},
+  isMobileSidebarOpen: false,
+  setIsMobileSidebarOpen: () => {},
   navigationContext: { level: 'multiverse' },
   setNavigationContext: () => {},
   currentMultiverse: null,
@@ -68,6 +74,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState('dashboard');
   
+  // Mobile navigation state
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  
   // New hierarchical state
   const [navigationContext, setNavigationContext] = useState<NavigationContext>({ level: 'multiverse' });
   const [currentMultiverse, setCurrentMultiverse] = useState<Multiverse | null>(null);
@@ -89,10 +98,18 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Loading multiverses...');
       const data = await multiverseService.getAll();
+      console.log('Multiverses loaded successfully:', data);
       setMultiverses(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load multiverses');
+      console.error('Failed to load multiverses:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load multiverses';
+      setError(errorMessage);
+      // Also log the full error for debugging
+      if (err instanceof Error && err.stack) {
+        console.error('Stack trace:', err.stack);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -114,9 +131,11 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Creating hierarchy with data:', data);
       
       // Create the complete hierarchy
       const result = await hierarchyService.createCompleteHierarchy(data);
+      console.log('Hierarchy created successfully:', result);
       
       // Update local state
       setCurrentMultiverse(result.multiverse);
@@ -129,7 +148,12 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       return result;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create hierarchy');
+      console.error('Failed to create hierarchy:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create hierarchy';
+      setError(errorMessage);
+      if (err instanceof Error && err.stack) {
+        console.error('Stack trace:', err.stack);
+      }
       throw err;
     } finally {
       setIsLoading(false);
@@ -142,6 +166,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Navigating to level:', level, 'with id:', id);
 
       switch (level) {
         case 'multiverse':
@@ -224,6 +249,8 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setCurrentProject,
       currentPage,
       setCurrentPage,
+      isMobileSidebarOpen,
+      setIsMobileSidebarOpen,
       navigationContext,
       setNavigationContext,
       currentMultiverse,

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SidebarAlt } from './SidebarAlt';
-import { HeaderAlt } from './HeaderAlt';
+import { MegaMenu } from './MegaMenu';
 import { useAppContext } from '../context/AppContext';
 import { FaFire } from 'react-icons/fa';
 
@@ -93,12 +92,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
       
       {/* Main layout structure */}
-      <div className="relative z-10 flex w-full h-full">
-        <SidebarAlt />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <HeaderAlt />
-          
-          <main className="flex-1 overflow-auto relative">
+      <div className="relative z-10 flex flex-col w-full h-full">
+        {/* Top Navigation */}
+        <header className="relative z-20 border-b border-cosmic-light border-opacity-20 bg-cosmic-deep/95 backdrop-blur-sm">
+          <div className="px-6 py-3">
+            <MegaMenu />
+          </div>
+        </header>
+        
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto relative z-10">
             {/* Architech's forge - content container */}
             <div className="h-full p-6 relative">
               {/* Glass panels effect */}
@@ -127,7 +130,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
           </main>
-        </div>
       </div>
     </div>
   );

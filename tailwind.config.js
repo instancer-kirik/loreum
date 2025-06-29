@@ -39,6 +39,25 @@ export default {
         'serif': ['Cormorant Garamond', 'serif'],
         'sans': ['Inter', 'sans-serif'],
       },
+      animation: {
+        'shimmer': 'shimmer 2s ease-in-out infinite',
+        'float': 'float 4s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { opacity: '0.5', textShadow: '0 0 5px currentColor' },
+          '50%': { opacity: '1', textShadow: '0 0 15px currentColor' },
+        },
+      },
     },
   },
   plugins: [],

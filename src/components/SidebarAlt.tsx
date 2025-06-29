@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   FaUsers,
   FaCode,
@@ -18,106 +18,117 @@ import {
   FaPaintBrush,
   FaScroll,
   FaLayerGroup,
-  FaHome
+  FaHome,
+  FaLink,
+  FaRoad
 } from 'react-icons/fa';
 import { useAppContext } from '../context/AppContext';
 
 export const SidebarAlt: React.FC = () => {
-  const { navigationContext, currentPage, setCurrentPage, navigateToLevel, getBreadcrumbs } = useAppContext();
+  const { navigationContext, currentPage, setCurrentPage, navigateToLevel, getBreadcrumbs, isMobileSidebarOpen, setIsMobileSidebarOpen } = useAppContext();
 
-  // Get menu items based on current navigation level
+  // Get menu items - unified navigation with context-specific sections
   const getMenuItems = () => {
     const baseItems = [
       { id: 'dashboard', icon: <FaHome size={18} />, label: 'Dashboard', disabled: false },
     ];
 
+    // Core tools always available
+    const coreItems = [
+      { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Content Manager', disabled: false },
+      { id: 'characters', icon: <FaTheaterMasks size={18} />, label: 'Characters', disabled: false },
+    ];
+
+    // Context-specific items
+    const contextItems = [];
+    
     switch (navigationContext.level) {
       case 'multiverse':
-        return [
-          ...baseItems,
-          { id: 'multiverse', icon: <FaAtom size={18} />, label: 'Multiverse', disabled: false },
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ipsumarium', disabled: false },
-          { id: 'characters', icon: <FaTheaterMasks size={18} />, label: 'Characters', disabled: false },
-          { id: 'config', icon: <FaCog size={18} />, label: 'Configuration', disabled: false },
-        ];
+        contextItems.push(
+          { id: 'multiverse', icon: <FaAtom size={18} />, label: 'Multiverse', disabled: false }
+        );
+        break;
       
       case 'universe':
-        return [
-          ...baseItems,
+        contextItems.push(
           { id: 'universe', icon: <FaGlobe size={18} />, label: 'Universe', disabled: false },
-          { id: 'astraloom', icon: <FaRocket size={18} />, label: 'Astraloom', disabled: false },
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ipsumarium', disabled: false },
-        ];
-      
-      case 'astraloom':
-        return [
-          ...baseItems,
-          { id: 'astraloom', icon: <FaRocket size={18} />, label: 'Star Systems', disabled: false },
-          { id: 'universe', icon: <FaGlobe size={18} />, label: 'Universe Explorer', disabled: false },
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ship Templates', disabled: false },
-        ];
+          { id: 'astraloom', icon: <FaRocket size={18} />, label: 'Astraloom', disabled: false }
+        );
+        break;
       
       case 'timeline':
-        return [
-          ...baseItems,
+        contextItems.push(
           { id: 'timeline', icon: <FaScroll size={18} />, label: 'Timeline', disabled: false },
           { id: 'lore', icon: <FaNetworkWired size={18} />, label: 'Lore Graph', disabled: false },
-          { id: 'narrative', icon: <FaBook size={18} />, label: 'Narrative', disabled: false },
-        ];
+          { id: 'narrative', icon: <FaBook size={18} />, label: 'Narrative', disabled: false }
+        );
+        break;
       
       case 'world':
-        return [
-          ...baseItems,
+        contextItems.push(
           { id: 'world', icon: <FaGlobe size={18} />, label: 'World', disabled: false },
           { id: 'region', icon: <FaMap size={18} />, label: 'Regions', disabled: false },
           { id: 'planetary', icon: <FaLayerGroup size={18} />, label: 'Structures', disabled: false },
-        ];
+          { id: 'lore', icon: <FaNetworkWired size={18} />, label: 'Lore Graph', disabled: false },
+          { id: 'narrative', icon: <FaBook size={18} />, label: 'Narrative', disabled: false }
+        );
+        break;
       
       case 'civilization':
-        return [
-          ...baseItems,
+        contextItems.push(
           { id: 'civilization', icon: <FaUsers size={18} />, label: 'Civilization', disabled: false },
-          { id: 'tech-tree', icon: <FaCode size={18} />, label: 'Tech Tree', disabled: false },
+          { id: 'tech-tree', icon: <FaCog size={18} />, label: 'Tech Tree', disabled: false },
           { id: 'culture', icon: <FaPalette size={18} />, label: 'Culture', disabled: false },
-          { id: 'items', icon: <FaBox size={18} />, label: 'Items', disabled: false },
-          { id: 'assets', icon: <FaDatabase size={18} />, label: 'Asset Manager', disabled: false },
-        ];
-      
-      case 'characters':
-        return [
-          ...baseItems,
-          { id: 'characters', icon: <FaTheaterMasks size={18} />, label: 'Characters', disabled: false },
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Templates', disabled: false },
-          { id: 'narrative', icon: <FaBook size={18} />, label: 'Narrative', disabled: false },
-          { id: 'artboard', icon: <FaPaintBrush size={18} />, label: 'Artboard', disabled: false },
-        ];
-      
-      case 'config':
-        return [
-          ...baseItems,
-          { id: 'config', icon: <FaCog size={18} />, label: 'System Settings', disabled: false },
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Template Config', disabled: false },
-          { id: 'assets', icon: <FaBox size={18} />, label: 'Export/Import', disabled: false },
-        ];
-      
-      default:
-        return [
-          ...baseItems,
-          { id: 'ipsumarium', icon: <FaDatabase size={18} />, label: 'Ipsumarium', disabled: false },
-          { id: 'characters', icon: <FaTheaterMasks size={18} />, label: 'Characters', disabled: false },
-          { id: 'artboard', icon: <FaPaintBrush size={18} />, label: 'Artboard', disabled: false },
-          { id: 'config', icon: <FaCog size={18} />, label: 'Configuration', disabled: false },
-        ];
+          { id: 'items', icon: <FaBox size={18} />, label: 'Items', disabled: false }
+        );
+        break;
     }
+
+    // System tools always at bottom
+    const systemItems = [
+      { id: 'magic-systems', icon: <FaAtom size={18} />, label: 'Magic Systems', disabled: false },
+      { id: 'roadmap', icon: <FaRoad size={18} />, label: 'Roadmap', disabled: false },
+      { id: 'config', icon: <FaCog size={18} />, label: 'Configuration', disabled: false },
+      { id: 'debug-supabase', icon: <FaCode size={18} />, label: 'Debug DB', disabled: false },
+    ];
+
+    return [...baseItems, ...contextItems, ...coreItems, ...systemItems];
   };
 
   const menuItems = getMenuItems();
   const breadcrumbs = getBreadcrumbs();
 
+  // Close mobile sidebar when screen resizes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMobileSidebarOpen) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileSidebarOpen, setIsMobileSidebarOpen]);
+
   return (
-    <aside className="hidden md:flex flex-col w-64 cosmic-sidebar relative z-20">
-      {/* Vertical circuit line */}
-      <div className="absolute top-0 right-0 h-full w-[1px] circuit-line-v"></div>
+    <>
+      {/* Mobile backdrop */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`
+        flex flex-col w-64 cosmic-sidebar relative z-50 transition-transform duration-300 ease-in-out
+        ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:relative md:z-20
+        fixed md:static inset-y-0 left-0
+      `}>
+        {/* Vertical circuit line */}
+        <div className="absolute top-0 right-0 h-full w-[1px] circuit-line-v"></div>
       
       <div className="p-4">
         <div className="flex items-center justify-center py-4">
@@ -158,7 +169,7 @@ export const SidebarAlt: React.FC = () => {
           {navigationContext.level === 'timeline' && 'Temporal Forge'}
           {navigationContext.level === 'world' && 'World Architect'}
           {navigationContext.level === 'civilization' && 'Civilization Builder'}
-          {navigationContext.level === 'ipsumarium' && 'Template Vault'}
+          {navigationContext.level === 'ipsumarium' && 'Content Manager'}
           {navigationContext.level === 'characters' && 'Character Studio'}
           {navigationContext.level === 'lore' && 'Lore Weaver'}
           {navigationContext.level === 'astraloom' && 'Star Navigator'}
@@ -174,7 +185,12 @@ export const SidebarAlt: React.FC = () => {
           {menuItems.map((item) => (
             <li key={item.id}>
               <button
-                onClick={() => !item.disabled && setCurrentPage(item.id)}
+                onClick={() => {
+                  if (!item.disabled) {
+                    setCurrentPage(item.id);
+                    setIsMobileSidebarOpen(false); // Close mobile sidebar when item is selected
+                  }
+                }}
                 disabled={item.disabled}
                 className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-300 ${
                   currentPage === item.id
@@ -222,5 +238,6 @@ export const SidebarAlt: React.FC = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };

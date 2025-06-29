@@ -9,6 +9,8 @@ import {
   Region, 
   Character, 
   IpsumTemplate,
+  TemplateInstance,
+  TemplateInstanceWithTemplate,
   Species,
   Government,
   TechTree,
@@ -502,6 +504,248 @@ export const ipsumariumService = {
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
+  },
+
+  async update(id: string, template: Partial<IpsumTemplate>): Promise<IpsumTemplate> {
+    const { data, error } = await supabase
+      .from('loreum_ipsumarium_templates')
+      .update({
+        name: template.name,
+        description: template.description,
+        type: template.type,
+        tags: template.tags,
+        metadata: template.metadata
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      type: data.type as any,
+      tags: data.tags,
+      metadata: data.metadata as any,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    };
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('loreum_ipsumarium_templates')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  }
+};
+
+// Template Instance operations
+export const templateInstanceService = {
+  async getAll(): Promise<TemplateInstanceWithTemplate[]> {
+    const { data, error } = await supabase
+      .from('loreum_template_instances_with_templates')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data.map(row => ({
+      id: row.id,
+      templateId: row.template_id,
+      instanceName: row.instance_name,
+      instanceDescription: row.instance_description,
+      multiverseId: row.multiverse_id,
+      universeId: row.universe_id,
+      timelineId: row.timeline_id,
+      worldId: row.world_id,
+      civilizationId: row.civilization_id,
+      discoveredYear: row.discovered_year,
+      notes: row.notes,
+      tags: row.tags,
+      localVariations: row.local_variations as any,
+      overrideMetadata: row.override_metadata as any,
+      originLocation: row.origin_location,
+      createdByCharacterId: row.created_by_character_id,
+      status: row.status as any,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      template: {
+        id: row.template_id,
+        name: row.template_name,
+        description: row.template_description,
+        type: row.template_type as any,
+        tags: row.template_tags,
+        metadata: row.template_metadata as any,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at)
+      },
+      multiverseName: row.multiverse_name,
+      universeName: row.universe_name,
+      timelineName: row.timeline_name,
+      worldName: row.world_name,
+      civilizationName: row.civilization_name
+    }));
+  },
+
+  async getById(id: string): Promise<TemplateInstanceWithTemplate | null> {
+    const { data, error } = await supabase
+      .from('loreum_template_instances_with_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) return null;
+    
+    return {
+      id: data.id,
+      templateId: data.template_id,
+      instanceName: data.instance_name,
+      instanceDescription: data.instance_description,
+      multiverseId: data.multiverse_id,
+      universeId: data.universe_id,
+      timelineId: data.timeline_id,
+      worldId: data.world_id,
+      civilizationId: data.civilization_id,
+      discoveredYear: data.discovered_year,
+      notes: data.notes,
+      tags: data.tags,
+      localVariations: data.local_variations as any,
+      overrideMetadata: data.override_metadata as any,
+      originLocation: data.origin_location,
+      createdByCharacterId: data.created_by_character_id,
+      status: data.status as any,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      template: {
+        id: data.template_id,
+        name: data.template_name,
+        description: data.template_description,
+        type: data.template_type as any,
+        tags: data.template_tags,
+        metadata: data.template_metadata as any,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      },
+      multiverseName: data.multiverse_name,
+      universeName: data.universe_name,
+      timelineName: data.timeline_name,
+      worldName: data.world_name,
+      civilizationName: data.civilization_name
+    };
+  },
+
+  async create(templateInstance: Omit<TemplateInstance, 'id' | 'createdAt' | 'updatedAt'>): Promise<TemplateInstance> {
+    const { data, error } = await supabase
+      .from('loreum_template_instances')
+      .insert({
+        template_id: templateInstance.templateId,
+        instance_name: templateInstance.instanceName,
+        instance_description: templateInstance.instanceDescription,
+        multiverse_id: templateInstance.multiverseId,
+        universe_id: templateInstance.universeId,
+        timeline_id: templateInstance.timelineId,
+        world_id: templateInstance.worldId,
+        civilization_id: templateInstance.civilizationId,
+        discovered_year: templateInstance.discoveredYear,
+        notes: templateInstance.notes,
+        tags: templateInstance.tags,
+        local_variations: templateInstance.localVariations,
+        override_metadata: templateInstance.overrideMetadata,
+        origin_location: templateInstance.originLocation,
+        created_by_character_id: templateInstance.createdByCharacterId,
+        status: templateInstance.status
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      templateId: data.template_id,
+      instanceName: data.instance_name,
+      instanceDescription: data.instance_description,
+      multiverseId: data.multiverse_id,
+      universeId: data.universe_id,
+      timelineId: data.timeline_id,
+      worldId: data.world_id,
+      civilizationId: data.civilization_id,
+      discoveredYear: data.discovered_year,
+      notes: data.notes,
+      tags: data.tags,
+      localVariations: data.local_variations as any,
+      overrideMetadata: data.override_metadata as any,
+      originLocation: data.origin_location,
+      createdByCharacterId: data.created_by_character_id,
+      status: data.status as any,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    };
+  },
+
+  async update(id: string, updates: Partial<TemplateInstance>): Promise<TemplateInstance> {
+    const { data, error } = await supabase
+      .from('loreum_template_instances')
+      .update({
+        template_id: updates.templateId,
+        instance_name: updates.instanceName,
+        instance_description: updates.instanceDescription,
+        multiverse_id: updates.multiverseId,
+        universe_id: updates.universeId,
+        timeline_id: updates.timelineId,
+        world_id: updates.worldId,
+        civilization_id: updates.civilizationId,
+        discovered_year: updates.discoveredYear,
+        notes: updates.notes,
+        tags: updates.tags,
+        local_variations: updates.localVariations,
+        override_metadata: updates.overrideMetadata,
+        origin_location: updates.originLocation,
+        created_by_character_id: updates.createdByCharacterId,
+        status: updates.status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      templateId: data.template_id,
+      instanceName: data.instance_name,
+      instanceDescription: data.instance_description,
+      multiverseId: data.multiverse_id,
+      universeId: data.universe_id,
+      timelineId: data.timeline_id,
+      worldId: data.world_id,
+      civilizationId: data.civilization_id,
+      discoveredYear: data.discovered_year,
+      notes: data.notes,
+      tags: data.tags,
+      localVariations: data.local_variations as any,
+      overrideMetadata: data.override_metadata as any,
+      originLocation: data.origin_location,
+      createdByCharacterId: data.created_by_character_id,
+      status: data.status as any,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    };
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('loreum_template_instances')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
   }
 };
 

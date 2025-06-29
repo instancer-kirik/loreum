@@ -76,7 +76,7 @@ export interface IpsumTemplate {
   id: string;
   name: string;
   description: string;
-  type: 'species' | 'tech' | 'item' | 'power' | 'vehicle' | 'starship' | 'culture' | 'civilization';
+  type: 'species' | 'tech' | 'item' | 'magic' | 'power' | 'vehicle' | 'starship' | 'culture' | 'civilization' | 'context-drop';
   tags: string[];
   metadata: Record<string, any>;
   createdAt: Date;
@@ -586,6 +586,137 @@ export interface VoiceProfile {
   speechPatterns: string[];
   catchphrases: string[];
   languageStyle: string;
+}
+
+// Template Instance types
+export interface TemplateInstance {
+  id: string;
+  templateId: string;
+  instanceName: string;
+  instanceDescription?: string;
+  
+  // Context hierarchy
+  multiverseId?: string;
+  universeId?: string;
+  timelineId?: string;
+  worldId?: string;
+  civilizationId?: string;
+  
+  // Local variations
+  localVariations: Record<string, any>;
+  overrideMetadata: Record<string, any>;
+  
+  // Instance properties
+  tags: string[];
+  status: 'active' | 'inactive' | 'deprecated';
+  notes?: string;
+  
+  // Relationships
+  createdByCharacterId?: string;
+  discoveredYear?: number;
+  originLocation?: string;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SpeciesInstance {
+  id: string;
+  templateInstanceId: string;
+  localPopulation: number;
+  adaptationTraits: string[];
+  culturalModifications: string[];
+  environmentalAdaptations: Record<string, any>;
+  primaryCivilizationId?: string;
+  homeworldRegionId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TechnologyInstance {
+  id: string;
+  templateInstanceId: string;
+  developmentLevel: number;
+  implementationDate?: number;
+  localModifications: string[];
+  efficiencyRating: number;
+  developedByCivilizationId?: string;
+  prerequisiteTechInstances: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ItemInstance {
+  id: string;
+  templateInstanceId: string;
+  conditionRating: number;
+  quantity: number;
+  currentLocation?: string;
+  ownershipHistory: Array<{
+    ownerId: string;
+    ownerType: 'character' | 'civilization';
+    startDate: number;
+    endDate?: number;
+    notes?: string;
+  }>;
+  appliedEnchantments: string[];
+  physicalModifications: string[];
+  currentOwnerCharacterId?: string;
+  currentOwnerCivilizationId?: string;
+  createdByCivilizationId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MagicSystemInstance {
+  id: string;
+  templateInstanceId: string;
+  powerLevel: number;
+  localRulesModifications: Record<string, any>;
+  practitionerPopulation: number;
+  culturalIntegrationLevel: 'unknown' | 'forbidden' | 'rare' | 'common' | 'integrated' | 'dominant';
+  primaryCivilizationId?: string;
+  associatedCharacters: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CultureInstance {
+  id: string;
+  templateInstanceId: string;
+  populationInfluence: number;
+  dominantSpecies: string[];
+  regionalVariations: Record<string, any>;
+  historicalEvolution: Array<{
+    year: number;
+    change: string;
+    cause: string;
+  }>;
+  primaryCivilizationId: string;
+  influentialRegions: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TemplateInstanceRelationship {
+  id: string;
+  sourceInstanceId: string;
+  targetInstanceId: string;
+  relationshipType: string;
+  relationshipStrength: number;
+  description?: string;
+  establishedYear?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TemplateInstanceWithTemplate extends TemplateInstance {
+  template: IpsumTemplate;
+  multiverseName?: string;
+  universeName?: string;
+  timelineName?: string;
+  worldName?: string;
+  civilizationName?: string;
 }
 
 // Lore Graph types

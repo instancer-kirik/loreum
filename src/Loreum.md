@@ -28,8 +28,14 @@ Canonical templates and reusable entities:
 - Items/
 
 - Magic Systems/
+  - [System Templates](https://chatgpt.com/c/ipsumarium/magic/systems.md)
+  - [Ability Frameworks](https://chatgpt.com/c/ipsumarium/magic/abilities.md)
+  - [Progression Rules](https://chatgpt.com/c/ipsumarium/magic/progression.md)
 
 - Enchantments/
+  - [Enchantment Catalog](https://chatgpt.com/c/ipsumarium/enchantments/catalog.md)
+  - [Application Rules](https://chatgpt.com/c/ipsumarium/enchantments/rules.md)
+  - [System Compatibility](https://chatgpt.com/c/ipsumarium/enchantments/compatibility.md)
 
 - Powers/
 
@@ -46,9 +52,14 @@ Canonical templates and reusable entities:
 
 Narrative-bound individuals:
 
-- [Keldari Juno](https://chatgpt.com/c/characters/keldari_juno.md)
+- Templates/
+  - [Character Templates](https://chatgpt.com/c/ipsumarium/characters/templates.md)
+  - [Ability Integration](https://chatgpt.com/c/ipsumarium/characters/abilities.md)
+  - [Cross-Timeline Rules](https://chatgpt.com/c/ipsumarium/characters/timeline_rules.md)
 
-- [Kael Vox](https://chatgpt.com/c/characters/kael_vox.md)
+- Instances/
+  - [Keldari Juno](https://chatgpt.com/c/characters/keldari_juno.md)
+  - [Kael Vox](https://chatgpt.com/c/characters/kael_vox.md)
 
 
 ## 🎧 [Voices & Casting](https://chatgpt.com/c/voices/)
@@ -147,10 +158,14 @@ System-wide control and classification:
 
 |Element|Connects To|Placement Strategy|
 |---|---|---|
-|Characters|Civilizations, Cultures, Worlds, Lore|Ipsumarium templates + entity linking|
+|Characters|Civilizations, Cultures, Worlds, Lore|Ipsumarium templates + timeline instances|
+|Character Abilities|Magic Systems, Powers, Tech|Character-ability linking via progression rules|
 |Cultures|Ipsumarium → World|Culture templates instanced per world|
-|Magic Systems|Tech, Items, Characters|Ipsumarium templates, referenced globally|
-|Enchantments|Items, Magic Systems, Tech|Ipsumarium templates, applied to entities|
+|Magic Systems|Tech, Items, Characters, Enchantments|Ipsumarium templates with granular subcategories|
+|Magic Abilities|Magic Systems, Characters|Nested under System Templates, linked to characters|
+|Progression Rules|Magic Systems, Characters|Define character advancement within systems|
+|Enchantments|Items, Magic Systems, Characters|Ipsumarium catalog with application rules|
+|Enchantment Applications|Items, Characters, Timeline|Track who applied what, when, where|
 |Voice / Actors|Characters, Narrative|Inside Characters|
 |Quips / Banter|Characters, Narrative, Lore Graph|Nested in Characters, linkable to events|
 |Art|Characters, Tech, Civilizations|Artboard, referenced per-entity|
@@ -165,8 +180,10 @@ System-wide control and classification:
 |Where does reusable data go?|Ipsumarium (template source)|
 |Where does world-specific data go?|Timeline / World / Civ layers|
 |Should Characters live in Ipsumarium?|As templates — then instanced per narrative context|
-|Should Magic Systems live in Ipsumarium?|Yes — reusable across worlds with local variations|
-|Should Enchantments live in Ipsumarium?|Yes — template catalog for consistent application|
+|Should Magic Systems live in Ipsumarium?|Yes — with granular subcategories (Templates, Abilities, Progression)|
+|Should Enchantments live in Ipsumarium?|Yes — with subcategories (Catalog, Rules, Compatibility)|
+|How do Characters learn magic?|Via Progression Rules linking Characters to Magic Abilities|
+|How are Enchantments applied?|Via Application Rules and tracking tables for items/characters|
 |What should be tree-structured?|Multiverse, World, Civilizational layers|
 |What's flat/tagged?|Ipsumarium, Characters, Artboard|
 |What's nonlinear?|Lore Graph, Astraloom, Narrative arcs|

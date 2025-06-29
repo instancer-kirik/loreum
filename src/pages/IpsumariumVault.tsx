@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaPlus,
   FaSearch,
@@ -12,6 +12,8 @@ import {
   FaAngleDoubleUp,
   FaGlobe,
   FaMagic,
+  FaClone,
+  FaComments,
 } from "react-icons/fa";
 import {
   IpsumTemplate,
@@ -19,11 +21,27 @@ import {
   TechTemplate,
   ItemTemplate,
 } from "../types";
+import { TemplateInstanceModal } from "../components/TemplateInstanceModal";
+import { ipsumariumService } from "../integrations/supabase/database";
 
 export const IpsumariumVault: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
+  // Instance modal state
+  const [selectedTemplate, setSelectedTemplate] = useState<IpsumTemplate | null>(null);
+  const [isInstanceModalOpen, setIsInstanceModalOpen] = useState(false);
+
+  const handleCreateInstance = (template: IpsumTemplate) => {
+    setSelectedTemplate(template);
+    setIsInstanceModalOpen(true);
+  };
+
+  const handleInstanceCreated = (instanceId: string) => {
+    console.log('Instance created:', instanceId);
+    // TODO: Show success notification or navigate to instance
+  };
 
   const categories = [
     {
@@ -86,95 +104,36 @@ export const IpsumariumVault: React.FC = () => {
       icon: <FaGlobe size={18} />,
       color: "text-flame-blue",
     },
+    {
+      id: "context-drop",
+      name: "Context Drops",
+      icon: <FaComments size={18} />,
+      color: "text-circuit-magic",
+    },
   ];
 
-  // Mock template data
-  const [templates, setTemplates] = useState<IpsumTemplate[]>([
-    {
-      id: "species_1",
-      name: "Ethereal Wanderers",
-      description:
-        "Energy-based beings that exist partially in subspace, capable of phasing through matter",
-      type: "species",
-      tags: ["energy-based", "phasing", "telepathic", "ancient"],
-      metadata: {
-        biology: "Pure energy consciousness",
-        traits: ["Phasing", "Telepathy", "Energy manipulation"],
-        averageLifespan: 50000,
-        intelligence: 95,
-      },
-      createdAt: new Date("2023-01-15"),
-      updatedAt: new Date("2023-06-20"),
-    },
-    {
-      id: "tech_1",
-      name: "Quantum Entanglement Communicator",
-      description:
-        "Instantaneous communication across any distance using quantum entangled particles",
-      type: "tech",
-      tags: ["quantum", "communication", "instantaneous", "advanced"],
-      metadata: {
-        tier: 6,
-        energyType: "Quantum",
-        dependencies: ["quantum_mechanics_mastery", "particle_manipulation"],
-        discoveryDifficulty: 85,
-      },
-      createdAt: new Date("2023-02-10"),
-      updatedAt: new Date("2023-07-15"),
-    },
-    {
-      id: "item_1",
-      name: "Void Crystal",
-      description:
-        "A crystalline structure that can store and channel dark energy from the void between dimensions",
-      type: "item",
-      tags: ["crystal", "void", "energy-storage", "rare"],
-      metadata: {
-        category: "Energy Storage",
-        rarity: "legendary",
-        energyCapacity: 10000,
-        materials: ["void_essence", "crystallized_spacetime"],
-      },
-      createdAt: new Date("2023-03-05"),
-      updatedAt: new Date("2023-08-01"),
-    },
-    {
-      id: "magic_1",
-      name: "Aetheric Resonance",
-      description:
-        "A magic system based on harmonizing with cosmic energy fields that permeate reality",
-      type: "magic",
-      tags: ["aetheric", "resonance", "cosmic", "harmonic"],
-      metadata: {
-        energySource: "Cosmic Aether",
-        disciplines: [
-          "Elemental Harmony",
-          "Void Manipulation",
-          "Temporal Resonance",
-        ],
-        complexity: "High",
-        rarity: "Uncommon",
-      },
-      createdAt: new Date("2023-04-12"),
-      updatedAt: new Date("2023-08-15"),
-    },
-    {
-      id: "enchantment_1",
-      name: "Quantum Stabilization",
-      description:
-        "An enchantment that maintains quantum coherence in unstable materials and devices",
-      type: "enchantment",
-      tags: ["quantum", "stabilization", "coherence", "technological"],
-      metadata: {
-        targetTypes: ["weapons", "devices", "materials"],
-        duration: "Permanent",
-        energyCost: "High",
-        prerequisites: ["Quantum Mechanics Mastery"],
-      },
-      createdAt: new Date("2023-05-20"),
-      updatedAt: new Date("2023-09-01"),
-    },
-  ]);
+  const [templates, setTemplates] = useState<IpsumTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load templates from database
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await ipsumariumService.getAll();
+        setTemplates(data);
+      } catch (err) {
+        console.error('Failed to load templates:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load templates');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTemplates();
+  }, []);
 
   const filteredTemplates = templates.filter((template) => {
     const matchesCategory =
@@ -208,6 +167,8 @@ export const IpsumariumVault: React.FC = () => {
         return <FaPalette className="text-glyph-accent" size={24} />;
       case "civilization":
         return <FaGlobe className="text-flame-blue" size={24} />;
+      case "context-drop":
+        return <FaComments className="text-circuit-magic" size={24} />;
       default:
         return <FaAtom className="text-glyph-bright" size={24} />;
     }
@@ -226,10 +187,26 @@ export const IpsumariumVault: React.FC = () => {
               Canonical templates and reusable entities across all realities
             </p>
           </div>
-          <button className="btn-glowing">
-            <FaPlus className="mr-2" size={16} />
-            New Template
-          </button>
+          <div className="flex space-x-3">
+            <button className="btn-glowing">
+              <FaPlus className="mr-2" size={16} />
+              New Template
+            </button>
+            <button 
+              className="glass-panel px-4 py-2 text-circuit-magic hover:text-circuit-energy transition-colors border border-circuit-magic border-opacity-30 hover:border-circuit-energy"
+              onClick={() => {
+                // Quick context drop - will implement modal later
+                const content = prompt("Paste ChatGPT conversation or context:");
+                if (content) {
+                  // For now, just log it - later we'll save to database
+                  console.log("Context drop:", content);
+                }
+              }}
+            >
+              <FaComments className="mr-2" size={16} />
+              Quick Drop
+            </button>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -278,9 +255,9 @@ export const IpsumariumVault: React.FC = () => {
                   </span>
                   <span className="font-serif">{category.name}</span>
                   <span className="ml-auto text-xs text-glyph-accent">
-                    {category.id === "all"
+                    {loading ? "..." : (category.id === "all"
                       ? templates.length
-                      : templates.filter((t) => t.type === category.id).length}
+                      : templates.filter((t) => t.type === category.id).length)}
                   </span>
                 </button>
               ))}
@@ -290,7 +267,35 @@ export const IpsumariumVault: React.FC = () => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto p-6">
-          {filteredTemplates.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-16 h-16 bg-cosmic-light bg-opacity-20 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                <FaAtom className="text-glyph-accent animate-spin" size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-glyph-bright mb-2 font-serif">
+                Loading Templates
+              </h3>
+              <p className="text-glyph-accent">
+                Accessing the Ipsumarium Vault...
+              </p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-16 h-16 bg-flame-orange bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                <FaAtom className="text-flame-orange" size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-glyph-bright mb-2 font-serif">
+                Error Loading Templates
+              </h3>
+              <p className="text-glyph-accent mb-6">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="btn-glowing"
+              >
+                Retry
+              </button>
+            </div>
+          ) : filteredTemplates.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="w-16 h-16 bg-cosmic-light bg-opacity-20 rounded-full flex items-center justify-center mb-4">
                 <FaAtom className="text-glyph-accent" size={32} />
@@ -354,9 +359,22 @@ export const IpsumariumVault: React.FC = () => {
                       <span>
                         Updated {template.updatedAt.toLocaleDateString()}
                       </span>
-                      <button className="text-flame-blue hover:text-flame-cyan transition-colors">
-                        Edit
-                      </button>
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCreateInstance(template);
+                          }}
+                          className="text-circuit-energy hover:text-circuit-magic transition-colors flex items-center"
+                          title="Create Instance"
+                        >
+                          <FaClone size={12} className="mr-1" />
+                          Instance
+                        </button>
+                        <button className="text-flame-blue hover:text-flame-cyan transition-colors">
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -365,6 +383,17 @@ export const IpsumariumVault: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* Template Instance Modal */}
+      <TemplateInstanceModal
+        isOpen={isInstanceModalOpen}
+        onClose={() => {
+          setIsInstanceModalOpen(false);
+          setSelectedTemplate(null);
+        }}
+        template={selectedTemplate}
+        onInstanceCreated={handleInstanceCreated}
+      />
     </div>
   );
 };

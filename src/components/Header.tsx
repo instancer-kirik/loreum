@@ -1,9 +1,26 @@
-import React from 'react';
-import { Atom, Menu, Search, Bell, Settings, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Wand2, Menu, Search, Bell, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const Header: React.FC = () => {
   const { currentProject } = useAppContext();
+  const { user, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    await signOut();
+    setIsSigningOut(false);
+  };
 
   return (
     <header className="bg-gray-800 border-b border-gray-700 py-4 px-6">
@@ -13,8 +30,8 @@ export const Header: React.FC = () => {
             <Menu size={24} />
           </button>
           <div className="flex items-center">
-            <Atom className="h-8 w-8 text-blue-500 mr-2" />
-            <h1 className="text-xl font-bold text-white">SciForge</h1>
+            <Wand2 className="h-8 w-8 text-purple-400 mr-2" />
+            <h1 className="text-xl font-bold text-white">Loreum</h1>
           </div>
           {currentProject && (
             <div className="hidden md:flex items-center ml-6 space-x-1">
@@ -40,9 +57,38 @@ export const Header: React.FC = () => {
           <button className="text-gray-400 hover:text-white">
             <Settings size={20} />
           </button>
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-            <User size={18} />
-          </div>
+          
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-2 text-gray-400 hover:text-white">
+                <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                  <User size={18} className="text-white" />
+                </div>
+                <span className="hidden md:block">{user?.email}</span>
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="text-red-600 focus:text-red-600"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {isSigningOut ? 'Signing out...' : 'Sign out'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
