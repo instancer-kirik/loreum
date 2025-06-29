@@ -28,6 +28,7 @@ import {
 import { IpsumTemplate, TemplateInstanceWithTemplate } from "../types";
 import { TemplateCreator } from "../components/TemplateCreator";
 import { InstanceCreator } from "../components/InstanceCreator";
+import { ContextDropModal } from "../components/ContextDropModal";
 
 type ContentType =
   | "all"
@@ -76,6 +77,7 @@ export const IpsumariumManager: React.FC = () => {
   const [instanceCreatorTemplate, setInstanceCreatorTemplate] =
     useState<IpsumTemplate | null>(null);
   const [showContextDropCreator, setShowContextDropCreator] = useState(false);
+  const [contextDropContent, setContextDropContent] = useState("");
 
   const contentTypes = [
     {
@@ -247,6 +249,15 @@ export const IpsumariumManager: React.FC = () => {
     }
   };
 
+  const handleSaveContextDrop = async (contextDrop: IpsumTemplate) => {
+    try {
+      console.log("Context drop saved:", contextDrop);
+      await loadContent(); // Reload data to show new context drop
+    } catch (err) {
+      console.error("Failed to save context drop:", err);
+    }
+  };
+
   const formatContextPath = (instance: TemplateInstanceWithTemplate) => {
     const parts = [];
     if (instance.multiverseName) parts.push(instance.multiverseName);
@@ -328,16 +339,7 @@ export const IpsumariumManager: React.FC = () => {
                 New Instance
               </button>
               <button
-                onClick={() => {
-                  const content = prompt("Paste ChatGPT conversation or context:");
-                  if (content) {
-                    const name = prompt("Name for this context drop:", `Chat - ${new Date().toLocaleDateString()}`);
-                    if (name) {
-                      // TODO: Save to database via ipsumariumService
-                      console.log("Context drop:", { name, content });
-                    }
-                  }
-                }}
+                onClick={() => setShowContextDropCreator(true)}
                 className="px-4 py-2 glass-panel text-circuit-magic hover:text-circuit-energy transition-colors border border-circuit-magic border-opacity-30 hover:border-circuit-energy flex items-center"
               >
                 <FaComments className="mr-2" size={16} />
@@ -862,6 +864,17 @@ export const IpsumariumManager: React.FC = () => {
         onSave={handleSaveInstance}
         template={instanceCreatorTemplate}
         availableTemplates={templates}
+      />
+
+      {/* Context Drop Modal */}
+      <ContextDropModal
+        isOpen={showContextDropCreator}
+        onClose={() => {
+          setShowContextDropCreator(false);
+          setContextDropContent("");
+        }}
+        onSave={handleSaveContextDrop}
+        initialContent={contextDropContent}
       />
     </div>
   );

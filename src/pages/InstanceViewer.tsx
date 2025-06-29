@@ -334,9 +334,9 @@ export const InstanceViewer: React.FC = () => {
       {/* Instance Detail Modal */}
       {selectedInstance && (
         <div className="fixed inset-0 bg-cosmic-deepest bg-opacity-80 flex items-center justify-center z-50 p-4">
-          <div className="glass-panel border border-cosmic-light border-opacity-30 max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+          <div className="glass-panel border border-cosmic-light border-opacity-30 max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex-shrink-0 p-6 border-b border-cosmic-light border-opacity-20">
+              <div className="flex items-start justify-between">
                 <div className="flex items-center">
                   {getTypeIcon(selectedInstance.template.type)}
                   <div className="ml-4">
@@ -355,7 +355,9 @@ export const InstanceViewer: React.FC = () => {
                   ✕
                 </button>
               </div>
+            </div>
 
+            <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
@@ -457,16 +459,20 @@ export const InstanceViewer: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">Local Variations</h3>
                       <div className="glass-panel p-4">
-                        <pre className="text-xs text-glyph-primary overflow-auto">
-                          {JSON.stringify(selectedInstance.localVariations, null, 2)}
-                        </pre>
+                        <div className="max-h-48 overflow-y-auto">
+                          <pre className="text-xs text-glyph-primary whitespace-pre-wrap">
+                            {JSON.stringify(selectedInstance.localVariations, null, 2)}
+                          </pre>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-between items-center mt-6 pt-6 border-t border-cosmic-light border-opacity-20">
+            <div className="flex-shrink-0 p-6 border-t border-cosmic-light border-opacity-20">
+              <div className="flex justify-between items-center">
                 <div className="text-xs text-glyph-accent">
                   Created {selectedInstance.createdAt.toLocaleDateString()}, 
                   Updated {selectedInstance.updatedAt.toLocaleDateString()}
