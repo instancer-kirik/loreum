@@ -28,6 +28,7 @@ import {
   FaCode,
   FaMagic,
   FaLink,
+  FaDownload,
 } from "react-icons/fa";
 
 interface RoadmapItem {
@@ -283,6 +284,18 @@ const roadmapData: RoadmapItem[] = [
     category: 'UI/UX',
     icon: <FaPalette className="h-5 w-5" />,
     progress: 0,
+    estimatedCompletion: 'Q3 2024'
+  },
+  {
+    id: 'color-palette-export',
+    title: 'Color Palette Export',
+    description: 'Export loreum color themes and palettes as CSS variables, Tailwind configs, SCSS, or JSON. Perfect for maintaining consistent aesthetics across world-building projects',
+    status: 'planned',
+    priority: 'medium',
+    category: 'UI/UX',
+    icon: <FaDownload className="h-5 w-5" />,
+    progress: 0,
+    dependencies: ['custom-theming'],
     estimatedCompletion: 'Q3 2024'
   },
   {

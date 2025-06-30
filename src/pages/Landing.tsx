@@ -14,6 +14,7 @@ import {
   FaCube,
   FaChevronRight,
   FaDownload,
+  FaPalette,
 } from "react-icons/fa";
 import { useAppContext } from "../context/AppContext";
 
@@ -77,6 +78,13 @@ export const Landing: React.FC = () => {
       description:
         "React + TypeScript + Tailwind. Clean, extensible, and ready for your contributions.",
       color: "text-flame-orange",
+    },
+    {
+      icon: <FaPalette size={28} />,
+      title: "Exportable Color Themes",
+      description:
+        "Export cosmic color palettes as CSS variables, Tailwind configs, or JSON. Perfect for maintaining consistent aesthetics across your projects.",
+      color: "text-circuit-magic",
     },
   ];
 
