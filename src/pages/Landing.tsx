@@ -405,7 +405,7 @@ export const Landing: React.FC = () => {
             Start Building Your Universe
           </h2>
           <p className="text-lg text-glyph-accent mb-8 max-w-2xl mx-auto">
-            No sign-up required. Just click and start creating.
+            Beta. Click and start creating.
           </p>
           <button
             onClick={() => setCurrentPage("dashboard")}
