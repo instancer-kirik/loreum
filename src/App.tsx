@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout } from './components/Layout';
+import { Landing } from './pages/Landing';
 import { DashboardAlt } from './pages/DashboardAlt';
 import { MultiverseExplorer } from './pages/MultiverseExplorer';
 import { IpsumariumManager } from './pages/ContentManager';
@@ -14,6 +15,8 @@ import { ItemEditor } from './pages/ItemEditor';
 import MagicSystemsManager from './pages/MagicSystemsManager';
 import { CharactersManager } from './pages/CharactersManager';
 import { Roadmap } from './pages/Roadmap';
+import { Astraloom } from './pages/Astraloom';
+import { ContextDropsManager } from './pages/ContextDropsManager';
 import DatabaseTest from './components/DatabaseTest';
 import MultiverseTest from './components/MultiverseTest';
 import DebugSupabase from './components/DebugSupabase';
@@ -28,6 +31,8 @@ function AppContent() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'landing':
+        return <Landing />;
       case 'dashboard':
         return <DashboardAlt onSelectProject={(project) => {
           // Legacy support - this will be handled by the new navigation system
@@ -35,11 +40,11 @@ function AppContent() {
       case 'multiverse':
         return <MultiverseExplorer />;
       case 'universe':
-        return <MultiverseExplorer />; // For now, reuse the explorer
+        return <MultiverseExplorer />;
       case 'timeline':
-        return <MultiverseExplorer />; // For now, reuse the explorer
+        return <MultiverseExplorer />;
       case 'world':
-        return <MultiverseExplorer />; // For now, reuse the explorer
+        return <MultiverseExplorer />;
       case 'ipsumarium':
         return <IpsumariumManager />;
       case 'civilization':
@@ -63,7 +68,9 @@ function AppContent() {
       case 'characters':
         return <CharactersManager />;
       case 'astraloom':
-        return <MultiverseExplorer />; // Star navigation through multiverse
+        return <Astraloom />;
+      case 'context-drops':
+        return <ContextDropsManager />;
       case 'artboard':
         return <IpsumariumManager />; // Visual assets remain here
       case 'config':
@@ -81,16 +88,20 @@ function AppContent() {
       case 'debug-supabase':
         return <DebugSupabase />;
       default:
-        return <DashboardAlt onSelectProject={() => {}} />;
+        return <Landing />;
     }
   };
 
   return (
-    <AuthGuard>
-      <Layout>
-        {renderPage()}
-      </Layout>
-    </AuthGuard>
+    currentPage === 'landing' ? (
+      renderPage()
+    ) : (
+      <AuthGuard>
+        <Layout>
+          {renderPage()}
+        </Layout>
+      </AuthGuard>
+    )
   );
 }
 

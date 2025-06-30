@@ -20,17 +20,18 @@ import {
   SpeciesTemplate,
   TechTemplate,
   ItemTemplate,
-} from "../types";
-import { TemplateInstanceModal } from "../components/TemplateInstanceModal";
-import { ipsumariumService } from "../integrations/supabase/database";
+} from "../src/types";
+import { TemplateInstanceModal } from "../src/components/TemplateInstanceModal";
+import { ipsumariumService } from "../src/integrations/supabase/database";
 
 export const IpsumariumVault: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  
+
   // Instance modal state
-  const [selectedTemplate, setSelectedTemplate] = useState<IpsumTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<IpsumTemplate | null>(null);
   const [isInstanceModalOpen, setIsInstanceModalOpen] = useState(false);
 
   const handleCreateInstance = (template: IpsumTemplate) => {
@@ -39,7 +40,7 @@ export const IpsumariumVault: React.FC = () => {
   };
 
   const handleInstanceCreated = (instanceId: string) => {
-    console.log('Instance created:', instanceId);
+    console.log("Instance created:", instanceId);
     // TODO: Show success notification or navigate to instance
   };
 
@@ -104,12 +105,6 @@ export const IpsumariumVault: React.FC = () => {
       icon: <FaGlobe size={18} />,
       color: "text-flame-blue",
     },
-    {
-      id: "context-drop",
-      name: "Context Drops",
-      icon: <FaComments size={18} />,
-      color: "text-circuit-magic",
-    },
   ];
 
   const [templates, setTemplates] = useState<IpsumTemplate[]>([]);
@@ -125,8 +120,10 @@ export const IpsumariumVault: React.FC = () => {
         const data = await ipsumariumService.getAll();
         setTemplates(data);
       } catch (err) {
-        console.error('Failed to load templates:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load templates');
+        console.error("Failed to load templates:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load templates",
+        );
       } finally {
         setLoading(false);
       }
@@ -136,6 +133,11 @@ export const IpsumariumVault: React.FC = () => {
   }, []);
 
   const filteredTemplates = templates.filter((template) => {
+    // Exclude context-drop templates as they have their own dedicated page
+    if (template.type === "context-drop") {
+      return false;
+    }
+
     const matchesCategory =
       selectedCategory === "all" || template.type === selectedCategory;
     const matchesSearch =
@@ -167,8 +169,7 @@ export const IpsumariumVault: React.FC = () => {
         return <FaPalette className="text-glyph-accent" size={24} />;
       case "civilization":
         return <FaGlobe className="text-flame-blue" size={24} />;
-      case "context-drop":
-        return <FaComments className="text-circuit-magic" size={24} />;
+
       default:
         return <FaAtom className="text-glyph-bright" size={24} />;
     }
@@ -192,11 +193,13 @@ export const IpsumariumVault: React.FC = () => {
               <FaPlus className="mr-2" size={16} />
               New Template
             </button>
-            <button 
+            <button
               className="glass-panel px-4 py-2 text-circuit-magic hover:text-circuit-energy transition-colors border border-circuit-magic border-opacity-30 hover:border-circuit-energy"
               onClick={() => {
                 // Quick context drop - will implement modal later
-                const content = prompt("Paste ChatGPT conversation or context:");
+                const content = prompt(
+                  "Paste ChatGPT conversation or context:",
+                );
                 if (content) {
                   // For now, just log it - later we'll save to database
                   console.log("Context drop:", content);
@@ -255,9 +258,13 @@ export const IpsumariumVault: React.FC = () => {
                   </span>
                   <span className="font-serif">{category.name}</span>
                   <span className="ml-auto text-xs text-glyph-accent">
-                    {loading ? "..." : (category.id === "all"
-                      ? templates.length
-                      : templates.filter((t) => t.type === category.id).length)}
+                    {loading
+                      ? "..."
+                      : category.id === "all"
+                        ? templates.filter((t) => t.type !== "context-drop")
+                            .length
+                        : templates.filter((t) => t.type === category.id)
+                            .length}
                   </span>
                 </button>
               ))}
@@ -288,7 +295,7 @@ export const IpsumariumVault: React.FC = () => {
                 Error Loading Templates
               </h3>
               <p className="text-glyph-accent mb-6">{error}</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="btn-glowing"
               >
@@ -335,7 +342,7 @@ export const IpsumariumVault: React.FC = () => {
                       </div>
                     </div>
 
-                    <p className="text-sm text-glyph-accent mb-3 line-clamp-3">
+                    <p className="text-sm text-glyph-accent mb-3 line-clamp-2">
                       {template.description}
                     </p>
 
@@ -360,7 +367,7 @@ export const IpsumariumVault: React.FC = () => {
                         Updated {template.updatedAt.toLocaleDateString()}
                       </span>
                       <div className="flex space-x-2">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleCreateInstance(template);
@@ -383,7 +390,7 @@ export const IpsumariumVault: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Template Instance Modal */}
       <TemplateInstanceModal
         isOpen={isInstanceModalOpen}

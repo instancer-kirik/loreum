@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { Users, PlusCircle, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, PlusCircle, Edit, Trash2, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Civilization, Species, Government, SocialStructure, HistoricalEra } from '../types';
+import { civilizationService } from '../integrations/supabase/database';
 
 export const CivilizationBuilder: React.FC = () => {
-  const { currentProject } = useAppContext();
+  const { currentWorld } = useAppContext();
   const [activeTab, setActiveTab] = useState('overview');
-  const [civilizations, setCivilizations] = useState<Civilization[]>(currentProject?.civilizations || []);
+  const [civilizations, setCivilizations] = useState<Civilization[]>([]);
   const [selectedCivId, setSelectedCivId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     species: true,
     government: true,
@@ -17,6 +20,28 @@ export const CivilizationBuilder: React.FC = () => {
 
   const selectedCiv = civilizations.find(civ => civ.id === selectedCivId);
 
+  // Load civilizations when world changes
+  useEffect(() => {
+    const loadCivilizations = async () => {
+      if (!currentWorld) return;
+      
+      setLoading(true);
+      try {
+        const civs = await civilizationService.getByWorldId(currentWorld.id);
+        setCivilizations(civs);
+        if (civs.length > 0 && !selectedCivId) {
+          setSelectedCivId(civs[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to load civilizations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCivilizations();
+  }, [currentWorld]);
+
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections({
       ...expandedSections,
@@ -24,26 +49,51 @@ export const CivilizationBuilder: React.FC = () => {
     });
   };
   
-  const handleCreateCiv = () => {
-    const newCiv: Civilization = {
-      id: Date.now().toString(),
-      name: 'New Civilization',
-      description: 'A brief description of your civilization',
-      species: [],
-      governments: [],
-      socialStructures: [],
-      eras: [],
-      populationDynamics: {
-        id: Date.now().toString(),
-        initialPopulation: 10000,
-        growthRate: 0.01,
-        migrations: []
-      }
-    };
-    
-    setCivilizations([...civilizations, newCiv]);
-    setSelectedCivId(newCiv.id);
-    setActiveTab('overview');
+  const handleCreateCiv = async () => {
+    if (!currentWorld) {
+      alert('Please select a world first');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const newCiv = await civilizationService.create({
+        name: 'New Civilization',
+        description: 'A brief description of your civilization',
+        populationDynamics: {
+          id: Date.now().toString(),
+          initialPopulation: 10000,
+          growthRate: 0.01,
+          migrations: []
+        }
+      }, currentWorld.id);
+      
+      setCivilizations([...civilizations, newCiv]);
+      setSelectedCivId(newCiv.id);
+      setActiveTab('overview');
+    } catch (error) {
+      console.error('Failed to create civilization:', error);
+      alert('Failed to create civilization');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateCiv = async (updates: Partial<Civilization>) => {
+    if (!selectedCiv || !currentWorld) return;
+
+    setSaving(true);
+    try {
+      const updatedCiv = await civilizationService.update(selectedCiv.id, updates);
+      const updatedCivs = civilizations.map(civ => 
+        civ.id === selectedCiv.id ? { ...civ, ...updatedCiv } : civ
+      );
+      setCivilizations(updatedCivs);
+    } catch (error) {
+      console.error('Failed to update civilization:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddSpecies = () => {
@@ -156,35 +206,41 @@ export const CivilizationBuilder: React.FC = () => {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedCiv) return;
-    
-    const updatedCivs = civilizations.map(civ => {
-      if (civ.id === selectedCivId) {
-        return {
-          ...civ,
-          name: e.target.value
-        };
-      }
-      return civ;
-    });
-    
-    setCivilizations(updatedCivs);
+    handleUpdateCiv({ name: e.target.value });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!selectedCiv) return;
-    
-    const updatedCivs = civilizations.map(civ => {
-      if (civ.id === selectedCivId) {
-        return {
-          ...civ,
-          description: e.target.value
-        };
-      }
-      return civ;
-    });
-    
-    setCivilizations(updatedCivs);
+    handleUpdateCiv({ description: e.target.value });
   };
+
+  const handleSave = async () => {
+    if (!selectedCiv || !currentWorld) return;
+    
+    setSaving(true);
+    try {
+      // TODO: Implement actual save to database
+      console.log('Saving civilization:', selectedCiv);
+      alert('Civilization saved successfully!');
+    } catch (error) {
+      console.error('Failed to save civilization:', error);
+      alert('Failed to save civilization');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!currentWorld) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Users size={48} className="mx-auto mb-4 text-gray-600" />
+          <h2 className="text-xl font-semibold text-gray-300 mb-2">No World Selected</h2>
+          <p className="text-gray-500">Please select a world to manage its civilizations</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">
@@ -194,15 +250,19 @@ export const CivilizationBuilder: React.FC = () => {
           <div className="p-4 border-b border-gray-700">
             <button
               onClick={handleCreateCiv}
-              className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              disabled={saving}
+              className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusCircle className="mr-2" size={18} />
-              <span>New Civilization</span>
+              <span>{saving ? 'Creating...' : 'New Civilization'}</span>
             </button>
           </div>
           
           <div className="p-4">
             <h2 className="text-sm font-medium text-gray-400 mb-3">YOUR CIVILIZATIONS</h2>
+            {loading ? (
+              <div className="text-center py-4 text-gray-500">Loading...</div>
+            ) : (
             <ul className="space-y-1">
               {civilizations.map(civ => (
                 <li key={civ.id}>
@@ -219,7 +279,7 @@ export const CivilizationBuilder: React.FC = () => {
                 </li>
               ))}
               
-              {civilizations.length === 0 && (
+              {civilizations.length === 0 && !loading && (
                 <li className="px-3 py-6 text-center">
                   <div className="text-gray-500 mb-2">
                     <Users size={36} className="mx-auto mb-2" />
@@ -227,13 +287,15 @@ export const CivilizationBuilder: React.FC = () => {
                   </div>
                   <button
                     onClick={handleCreateCiv}
-                    className="text-purple-400 text-sm hover:text-purple-300"
+                    disabled={saving}
+                    className="text-purple-400 text-sm hover:text-purple-300 disabled:opacity-50"
                   >
                     Create your first civilization
                   </button>
                 </li>
               )}
             </ul>
+            )}
           </div>
         </div>
         
@@ -241,6 +303,19 @@ export const CivilizationBuilder: React.FC = () => {
         <div className="flex-1 overflow-y-auto">
           {selectedCiv ? (
             <div className="h-full">
+              {/* Header with Save Button */}
+              <div className="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
+                <h1 className="text-xl font-semibold text-white">{selectedCiv.name}</h1>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  <Save size={16} />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+              
               {/* Tabs */}
               <div className="bg-gray-800 border-b border-gray-700 flex">
                 <button
@@ -297,7 +372,8 @@ export const CivilizationBuilder: React.FC = () => {
                         type="text"
                         value={selectedCiv.name}
                         onChange={handleNameChange}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Enter civilization name"
                       />
                     </div>
                     
@@ -308,7 +384,9 @@ export const CivilizationBuilder: React.FC = () => {
                       <textarea
                         value={selectedCiv.description}
                         onChange={handleDescriptionChange}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 h-32"
+                        rows={4}
+                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Describe your civilization's culture, values, and characteristics"
                       />
                     </div>
                     

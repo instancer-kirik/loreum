@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaHome,
   FaAtom,
@@ -15,16 +15,19 @@ import {
   FaLayerGroup,
   FaRocket,
   FaPaintBrush,
+  FaScroll,
   FaRoad,
   FaCode,
-  FaChevronDown,
-  FaBars,
   FaTimes,
+  FaComments,
+  FaComment,
+  FaBars,
   FaMagic,
-  FaFire,
-  FaScroll,
+  FaChevronDown,
+  FaInfinity,
 } from "react-icons/fa";
 import { useAppContext } from "../context/AppContext";
+import { FaChevronRight } from "react-icons/fa";
 
 interface MenuCategory {
   id: string;
@@ -59,7 +62,7 @@ const getContextualMenuCategories = (
         },
         {
           id: "ipsumarium",
-          label: "Content Manager",
+          label: "Ipsumarium",
           description: "Create and manage all content templates",
           icon: <FaDatabase className="h-4 w-4" />,
           badge: "Creation Hub",
@@ -69,6 +72,12 @@ const getContextualMenuCategories = (
           label: "Characters",
           description: "Manage characters and personalities",
           icon: <FaTheaterMasks className="h-4 w-4" />,
+        },
+        {
+          id: "context-drops",
+          label: "Context Drops",
+          description: "Manage conversation exports and chat context",
+          icon: <FaComments className="h-4 w-4" />,
         },
       ],
     },
@@ -84,10 +93,10 @@ const getContextualMenuCategories = (
     icon: <FaAtom className="h-5 w-5" />,
     items: [
       {
-        id: "multiverse",
-        label: "Multiverse Explorer",
-        description: "Navigate reality hierarchy and dimensions",
-        icon: <FaAtom className="h-4 w-4" />,
+        id: "dashboard",
+        label: "Multiverse Dashboard",
+        description: "View and manage all your multiverses",
+        icon: <FaHome className="h-4 w-4" />,
       },
     ],
   });
@@ -242,8 +251,16 @@ const getContextualMenuCategories = (
 };
 
 export const MegaMenu: React.FC = () => {
-  const { currentPage, setCurrentPage, navigationContext, getBreadcrumbs } =
-    useAppContext();
+  const {
+    currentPage,
+    setCurrentPage,
+    navigationContext,
+    getBreadcrumbs,
+    currentMultiverse,
+    currentUniverse,
+    currentTimeline,
+    currentWorld,
+  } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -319,33 +336,40 @@ export const MegaMenu: React.FC = () => {
   };
 
   return (
-    <div className="relative flex items-center gap-4" ref={menuRef}>
+    <div
+      className="relative flex items-center gap-2 md:gap-4 max-w-full"
+      ref={menuRef}
+    >
       {/* Logo & Brand */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-flame-blue to-flame-orange blur-lg opacity-70"></div>
-          <div className="relative glass-panel p-2 rounded-lg flex items-center justify-center">
-            <FaFire
-              className="h-5 w-5 text-flame-blue"
-              style={{ filter: "drop-shadow(0 0 5px var(--flame-orange))" }}
+          <div className="absolute inset-0 bg-gradient-to-r from-circuit-energy to-circuit-magic blur-lg opacity-70"></div>
+          <div className="relative glass-panel p-1.5 md:p-2 rounded-lg flex items-center justify-center">
+            <FaInfinity
+              className="h-4 w-4 md:h-5 md:w-5 text-circuit-energy"
+              style={{ filter: "drop-shadow(0 0 5px var(--circuit-magic))" }}
             />
           </div>
         </div>
         <div className="hidden sm:block">
-          <div className="loreum-title text-lg text-glyph-bright">Loreum</div>
+          <div className="loreum-title text-base md:text-lg text-glyph-bright">
+            Loreum
+          </div>
           <div className="text-xs text-glyph-accent">{getContextTitle()}</div>
         </div>
       </div>
 
       {/* Breadcrumbs - Desktop Only */}
       {breadcrumbs.length > 0 && (
-        <div className="hidden lg:flex items-center gap-2 text-sm">
-          <div className="text-glyph-secondary">→</div>
+        <div className="hidden lg:flex items-center gap-1 text-sm min-w-0 flex-1 overflow-hidden">
+          <div className="text-glyph-secondary flex-shrink-0">→</div>
           {breadcrumbs.map((crumb, index) => (
             <React.Fragment key={crumb.id}>
-              <span className="text-glyph-accent">{crumb.name}</span>
+              <span className="text-glyph-accent truncate max-w-[120px]">
+                {crumb.name}
+              </span>
               {index < breadcrumbs.length - 1 && (
-                <div className="text-glyph-secondary">→</div>
+                <div className="text-glyph-secondary flex-shrink-0">→</div>
               )}
             </React.Fragment>
           ))}
@@ -353,28 +377,28 @@ export const MegaMenu: React.FC = () => {
       )}
 
       {/* Menu Trigger */}
-      <div className="ml-auto">
+      <div className="flex-shrink-0">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-3 px-4 py-2 rounded-lg glass-panel border border-cosmic-light hover:border-flame-blue/30 transition-all duration-200 group"
+          className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 rounded-lg glass-panel border border-cosmic-light hover:border-flame-blue/30 transition-all duration-200 group"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {isOpen ? (
               <FaTimes className="h-4 w-4 text-flame-blue" />
             ) : (
               <FaBars className="h-4 w-4 text-glyph-accent group-hover:text-flame-blue" />
             )}
-            <div className="hidden md:block">
-              <div className="text-sm font-medium text-glyph-bright">
+            <div className="hidden sm:block">
+              <div className="text-xs md:text-sm font-medium text-glyph-bright truncate max-w-[150px]">
                 {currentPageInfo.item}
               </div>
-              <div className="text-xs text-glyph-accent">
+              <div className="text-xs text-glyph-accent truncate max-w-[150px]">
                 {currentPageInfo.category}
               </div>
             </div>
           </div>
           <FaChevronDown
-            className={`hidden md:block h-3 w-3 text-glyph-accent transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+            className={`hidden sm:block h-3 w-3 text-glyph-accent transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
           />
         </button>
       </div>
@@ -388,8 +412,8 @@ export const MegaMenu: React.FC = () => {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="fixed md:absolute top-16 md:top-full left-4 md:left-auto md:right-0 right-4 md:mt-2 z-[9999] w-auto md:w-screen md:max-w-6xl h-[calc(100vh-6rem)] md:h-auto overflow-hidden">
-            <div className="glass-panel border border-cosmic-light rounded-xl shadow-2xl overflow-hidden h-full md:h-auto">
+          <div className="fixed md:absolute top-16 md:top-full left-4 md:left-0 right-4 md:right-auto md:mt-2 z-[9999] w-auto md:w-[600px] lg:w-[800px] h-[calc(100vh-6rem)] md:h-auto overflow-hidden">
+            <div className="bg-cosmic-deep/95 backdrop-blur-sm border border-cosmic-light rounded-xl shadow-2xl overflow-hidden h-full md:h-auto">
               <div className="flex flex-col h-full md:h-auto">
                 {/* Mobile breadcrumbs */}
                 {breadcrumbs.length > 0 && (
@@ -540,7 +564,7 @@ export const MegaMenu: React.FC = () => {
                       <div className="flex items-center justify-center h-64 md:h-96">
                         <div className="text-center px-4">
                           <div className="w-16 h-16 rounded-full bg-cosmic-light/10 flex items-center justify-center mx-auto mb-4">
-                            <FaFire className="h-8 w-8 text-flame-blue" />
+                            <FaBox className="h-8 w-8 text-flame-blue" />
                           </div>
                           <h3 className="text-lg font-medium text-glyph-bright mb-2">
                             {getContextTitle()}

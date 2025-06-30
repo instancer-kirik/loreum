@@ -1,0 +1,90 @@
+-- Migration 009: Cleanup old context drops implementation
+-- This migration cleans up the old context-drop implementation from templates
+-- Run this BEFORE running migration 010
+
+-- Drop the trigger that depends on the function
+DROP TRIGGER IF EXISTS trigger_update_context_drop_stats ON loreum_ipsumarium_templates;
+
+-- Drop the function that the trigger depends on
+DROP FUNCTION IF EXISTS update_context_drop_stats() CASCADE;
+
+-- Drop other context-drop related functions from the old implementation
+DROP FUNCTION IF EXISTS find_context_drops_mentioning_entity(text) CASCADE;
+
+-- Drop the old context_drops view that was based on templates
+DROP VIEW IF EXISTS context_drops CASCADE;
+
+-- Drop context-drop specific indexes that may exist
+DROP INDEX IF EXISTS idx_loreum_ipsumarium_templates_type_context_drop;
+DROP INDEX IF EXISTS idx_loreum_ipsumarium_templates_metadata_annotations;
+DROP INDEX IF EXISTS idx_loreum_ipsumarium_templates_metadata_conversation_context;
+
+-- Migrate existing context-drop templates to a temporary table for later migration
+-- This preserves the data before we clean up the templates table
+CREATE TEMP TABLE temp_context_drops AS
+SELECT 
+    id,
+    name,
+    description,
+    COALESCE(metadata->>'raw_content', '') as raw_content,
+    COALESCE(metadata->>'conversation_context', 'general') as conversation_context,
+    CASE 
+        WHEN metadata->'participants' IS NOT NULL 
+        THEN ARRAY(SELECT jsonb_array_elements_text(metadata->'participants'))
+        ELSE ARRAY['user', 'assistant']
+    END as participants,
+    COALESCE(metadata->'annotations', '[]'::jsonb) as annotations,
+    tags,
+    metadata,
+    created_at,
+    updated_at
+FROM loreum_ipsumarium_templates 
+WHERE type = 'context-drop';
+
+-- Show how many context-drop templates we found
+DO $$
+DECLARE
+    context_drop_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO context_drop_count FROM temp_context_drops;
+    RAISE NOTICE 'Found % context-drop templates to migrate', context_drop_count;
+END $$;
+
+-- Remove context-drop from the templates table constraint
+ALTER TABLE loreum_ipsumarium_templates 
+DROP CONSTRAINT IF EXISTS loreum_ipsumarium_templates_type_check;
+
+-- Add the constraint back without context-drop
+ALTER TABLE loreum_ipsumarium_templates 
+ADD CONSTRAINT loreum_ipsumarium_templates_type_check 
+CHECK (type = ANY (ARRAY[
+    'species'::text, 
+    'tech'::text, 
+    'item'::text, 
+    'power'::text, 
+    'vehicle'::text, 
+    'starship'::text, 
+    'culture'::text, 
+    'civilization'::text, 
+    'magic_system'::text, 
+    'enchantment'::text
+]));
+
+-- Delete the context-drop templates from the templates table
+-- This is commented out for safety - uncomment after reviewing the temp table
+-- DELETE FROM loreum_ipsumarium_templates WHERE type = 'context-drop';
+
+-- Add comment to document the change
+COMMENT ON CONSTRAINT loreum_ipsumarium_templates_type_check ON loreum_ipsumarium_templates 
+IS 'Ensures type is one of the allowed template types. Context drops now have their own dedicated table.';
+
+-- Instructions for next steps
+DO $$
+BEGIN
+    RAISE NOTICE '=== MIGRATION 009 COMPLETE ===';
+    RAISE NOTICE 'Next steps:';
+    RAISE NOTICE '1. Review the temp_context_drops table to ensure data looks correct';
+    RAISE NOTICE '2. Run migration 010 to create the new context_drops table';
+    RAISE NOTICE '3. Run the data migration script to move data from temp table';
+    RAISE NOTICE '4. Uncomment the DELETE statement above to clean up old templates';
+END $$;

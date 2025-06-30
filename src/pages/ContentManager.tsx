@@ -29,13 +29,18 @@ import { IpsumTemplate, TemplateInstanceWithTemplate } from "../types";
 import { TemplateCreator } from "../components/TemplateCreator";
 import { InstanceCreator } from "../components/InstanceCreator";
 import { ContextDropModal } from "../components/ContextDropModal";
+import { ChatViewer } from "../components/ChatViewer";
+import {
+  contextDropService,
+  ContextDrop,
+} from "../integrations/supabase/contextDrops";
 
 type ContentType =
   | "all"
   | "species"
   | "tech"
   | "item"
-  | "magic"
+  | "magic_system"
   | "culture"
   | "character"
   | "civilization"
@@ -76,8 +81,11 @@ export const IpsumariumManager: React.FC = () => {
   const [showInstanceCreator, setShowInstanceCreator] = useState(false);
   const [instanceCreatorTemplate, setInstanceCreatorTemplate] =
     useState<IpsumTemplate | null>(null);
-  const [showContextDropCreator, setShowContextDropCreator] = useState(false);
+  const [showContextDropModal, setShowContextDropModal] = useState(false);
   const [contextDropContent, setContextDropContent] = useState("");
+  const [viewingContextDrop, setViewingContextDrop] =
+    useState<ContextDrop | null>(null);
+  const [contextDrops, setContextDrops] = useState<ContextDrop[]>([]);
 
   const contentTypes = [
     {
@@ -100,7 +108,7 @@ export const IpsumariumManager: React.FC = () => {
     },
     { id: "item", name: "Items", icon: <FaGem />, color: "text-flame-orange" },
     {
-      id: "magic",
+      id: "magic_system",
       name: "Magic Systems",
       icon: <FaMagic />,
       color: "text-circuit-magic",
@@ -139,12 +147,15 @@ export const IpsumariumManager: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [templatesData, instancesData] = await Promise.all([
-        ipsumariumService.getAll().catch(() => []),
-        templateInstanceService.getAll().catch(() => []),
-      ]);
+      const [templatesData, instancesData, contextDropsData] =
+        await Promise.all([
+          ipsumariumService.getAll().catch(() => []),
+          templateInstanceService.getAll().catch(() => []),
+          contextDropService.getAll().catch(() => []),
+        ]);
       setTemplates(templatesData);
       setInstances(instancesData);
+      setContextDrops(contextDropsData);
     } catch (err) {
       console.error("Failed to load content:", err);
       setError(err instanceof Error ? err.message : "Failed to load content");
@@ -177,6 +188,17 @@ export const IpsumariumManager: React.FC = () => {
       createdAt: instance.createdAt,
       updatedAt: instance.updatedAt,
       data: instance,
+    })),
+    ...contextDrops.map((contextDrop) => ({
+      id: `context-drop_${contextDrop.id}`,
+      name: contextDrop.name,
+      description: contextDrop.description || "Context drop conversation",
+      type: "context-drop" as const,
+      source: "template" as const, // Context drops are treated as template-like entities
+      tags: contextDrop.tags,
+      createdAt: contextDrop.created_at,
+      updatedAt: contextDrop.updated_at,
+      data: contextDrop,
     })),
   ];
 
@@ -212,9 +234,16 @@ export const IpsumariumManager: React.FC = () => {
   const getTypeStats = (type: string) => {
     if (type === "all") {
       return {
-        templates: templates.length,
+        templates: templates.length + contextDrops.length,
         instances: instances.length,
-        total: templates.length + instances.length,
+        total: templates.length + instances.length + contextDrops.length,
+      };
+    }
+    if (type === "context-drop") {
+      return {
+        templates: contextDrops.length,
+        instances: 0,
+        total: contextDrops.length,
       };
     }
     return {
@@ -231,28 +260,52 @@ export const IpsumariumManager: React.FC = () => {
 
   const handleSaveTemplate = async (templateData: any) => {
     try {
-      // In real app, this would call ipsumariumService.create()
       console.log("Saving template:", templateData);
+      await ipsumariumService.create({
+        name: templateData.name,
+        description: templateData.description,
+        type: templateData.type,
+        tags: templateData.tags || [],
+        metadata: templateData.metadata || {}
+      });
       await loadContent(); // Reload data
+      setShowTemplateCreator(false);
     } catch (err) {
       console.error("Failed to save template:", err);
+      alert('Failed to save template. Check console for details.');
     }
   };
 
   const handleSaveInstance = async (instanceData: any) => {
     try {
-      // In real app, this would call templateInstanceService.createInstance()
       console.log("Saving instance:", instanceData);
+      if (!instanceCreatorTemplate) {
+        console.error("No template selected for instance creation");
+        return;
+      }
+      
+      await templateInstanceService.createInstance({
+        templateId: instanceCreatorTemplate.id,
+        worldId: currentWorld?.id || null,
+        name: instanceData.name,
+        description: instanceData.description,
+        localMetadata: instanceData.localMetadata || {}
+      });
+      
       await loadContent(); // Reload data
+      setShowInstanceCreator(false);
+      setInstanceCreatorTemplate(null);
     } catch (err) {
       console.error("Failed to save instance:", err);
+      alert('Failed to save instance. Check console for details.');
     }
   };
 
-  const handleSaveContextDrop = async (contextDrop: IpsumTemplate) => {
+  const handleSaveContextDrop = async (contextDrop: ContextDrop) => {
     try {
       console.log("Context drop saved:", contextDrop);
       await loadContent(); // Reload data to show new context drop
+      setShowContextDropModal(false);
     } catch (err) {
       console.error("Failed to save context drop:", err);
     }
@@ -279,9 +332,7 @@ export const IpsumariumManager: React.FC = () => {
           <h3 className="text-xl font-bold text-glyph-bright mb-2 font-serif">
             Loading Ipsumarium
           </h3>
-          <p className="text-glyph-accent">
-            Accessing the Ipsumarium Vault...
-          </p>
+          <p className="text-glyph-accent">Accessing the Ipsumarium Vault...</p>
         </div>
       </div>
     );
@@ -313,7 +364,7 @@ export const IpsumariumManager: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-bold text-glyph-bright font-serif mb-2">
-              Ipsumarium Manager
+              Ipsumarium
             </h1>
             <p className="text-glyph-accent">
               Canonical templates and instances across all realities
@@ -339,11 +390,11 @@ export const IpsumariumManager: React.FC = () => {
                 New Instance
               </button>
               <button
-                onClick={() => setShowContextDropCreator(true)}
+                onClick={() => setShowContextDropModal(true)}
                 className="px-4 py-2 glass-panel text-circuit-magic hover:text-circuit-energy transition-colors border border-circuit-magic border-opacity-30 hover:border-circuit-energy flex items-center"
               >
                 <FaComments className="mr-2" size={16} />
-                Quick Drop
+                Context Drop
               </button>
             </div>
           </div>
@@ -591,19 +642,22 @@ export const IpsumariumManager: React.FC = () => {
                           <FaEye size={12} className="mr-1" />
                           View
                         </button>
-                        {item.source === "template" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCreateInstance(item.data as IpsumTemplate);
-                            }}
-                            className="text-circuit-energy hover:text-circuit-magic transition-colors flex items-center"
-                            title="Create Instance"
-                          >
-                            <FaClone size={12} className="mr-1" />
-                            Clone
-                          </button>
-                        )}
+                        {item.source === "template" &&
+                          item.type !== "context-drop" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCreateInstance(
+                                  item.data as IpsumTemplate,
+                                );
+                              }}
+                              className="text-circuit-energy hover:text-circuit-magic transition-colors flex items-center"
+                              title="Create Instance"
+                            >
+                              <FaClone size={12} className="mr-1" />
+                              Instance
+                            </button>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -713,9 +767,9 @@ export const IpsumariumManager: React.FC = () => {
       {/* Item Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 bg-cosmic-deepest bg-opacity-80 flex items-center justify-center z-50 p-4">
-          <div className="glass-panel border border-cosmic-light border-opacity-30 max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+          <div className="glass-panel border border-cosmic-light border-opacity-30 max-w-7xl w-full h-[90vh] flex flex-col">
+            <div className="flex-shrink-0 p-4 border-b border-cosmic-light border-opacity-20">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   {getTypeIcon(selectedItem.type)}
                   <div className="ml-4">
@@ -733,116 +787,131 @@ export const IpsumariumManager: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="text-glyph-accent hover:text-glyph-bright transition-colors"
+                  className="text-glyph-accent hover:text-glyph-bright transition-colors text-2xl"
                 >
-                  ✕
+                  ×
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
-                      Details
-                    </h3>
-                    <div className="glass-panel p-4 space-y-3">
-                      <div>
-                        <label className="text-xs text-glyph-accent">
-                          Description
-                        </label>
-                        <div className="text-sm text-glyph-primary">
-                          {selectedItem.description}
-                        </div>
-                      </div>
-
-                      {selectedItem.source === "instance" &&
-                        selectedItem.data &&
-                        "multiverseName" in selectedItem.data && (
-                          <div>
-                            <label className="text-xs text-glyph-accent">
-                              Context Path
-                            </label>
-                            <div className="text-sm text-glyph-primary">
-                              {formatContextPath(selectedItem.data)}
-                            </div>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
-                      Tags
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedItem.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs px-3 py-1 bg-cosmic-light bg-opacity-30 text-glyph-accent rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {selectedItem.source === "instance" &&
-                    selectedItem.data &&
-                    "template" in selectedItem.data && (
-                      <div>
-                        <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
-                          Template Source
-                        </h3>
-                        <div className="glass-panel p-4 space-y-3">
-                          <div>
-                            <label className="text-xs text-glyph-accent">
-                              Template Name
-                            </label>
-                            <div className="text-sm text-circuit-energy font-medium">
-                              {selectedItem.data.template.name}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="text-xs text-glyph-accent">
-                              Template Description
-                            </label>
-                            <div className="text-sm text-glyph-primary">
-                              {selectedItem.data.template.description}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center mt-6 pt-6 border-t border-cosmic-light border-opacity-20">
-                <div className="text-xs text-glyph-accent">
-                  Created {selectedItem.createdAt.toLocaleDateString()}, Updated{" "}
-                  {selectedItem.updatedAt.toLocaleDateString()}
-                </div>
-                <div className="flex space-x-3">
-                  <button className="px-4 py-2 bg-circuit-energy text-cosmic-deepest rounded-md hover:bg-circuit-magic transition-colors flex items-center">
-                    <FaEdit className="mr-2" size={14} />
-                    Edit
-                  </button>
-                  {selectedItem.source === "template" && (
-                    <button
-                      onClick={() =>
-                        handleCreateInstance(selectedItem.data as IpsumTemplate)
-                      }
-                      className="px-4 py-2 glass-panel text-glyph-bright hover:text-flame-blue transition-colors flex items-center"
-                    >
-                      <FaClone className="mr-2" size={14} />
-                      Create Instance
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
+
+            {selectedItem.type === "context-drop" ? (
+              <div className="flex-1 min-h-0">
+                <ChatViewer
+                  rawContent={(selectedItem.data as ContextDrop).raw_content}
+                  annotations={(selectedItem.data as ContextDrop).annotations}
+                  editable={false}
+                />
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
+                        Details
+                      </h3>
+                      <div className="glass-panel p-4 space-y-3">
+                        <div>
+                          <label className="text-xs text-glyph-accent">
+                            Description
+                          </label>
+                          <div className="text-sm text-glyph-primary">
+                            {selectedItem.description}
+                          </div>
+                        </div>
+
+                        {selectedItem.source === "instance" &&
+                          selectedItem.data &&
+                          "multiverseName" in selectedItem.data && (
+                            <div>
+                              <label className="text-xs text-glyph-accent">
+                                Context Path
+                              </label>
+                              <div className="text-sm text-glyph-primary">
+                                {formatContextPath(selectedItem.data)}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
+                        Tags
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedItem.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-xs px-3 py-1 bg-cosmic-light bg-opacity-30 text-glyph-accent rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {selectedItem.source === "instance" &&
+                      selectedItem.data &&
+                      "template" in selectedItem.data && (
+                        <div>
+                          <h3 className="text-lg font-medium text-glyph-bright mb-2 font-serif">
+                            Template Source
+                          </h3>
+                          <div className="glass-panel p-4 space-y-3">
+                            <div>
+                              <label className="text-xs text-glyph-accent">
+                                Template Name
+                              </label>
+                              <div className="text-sm text-circuit-energy font-medium">
+                                {selectedItem.data.template.name}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-xs text-glyph-accent">
+                                Template Description
+                              </label>
+                              <div className="text-sm text-glyph-primary">
+                                {selectedItem.data.template.description}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center mt-6 pt-6 border-t border-cosmic-light border-opacity-20">
+                  <div className="text-xs text-glyph-accent">
+                    Created {selectedItem.createdAt.toLocaleDateString()},
+                    Updated {selectedItem.updatedAt.toLocaleDateString()}
+                  </div>
+                  <div className="flex space-x-3">
+                    <button className="px-4 py-2 bg-circuit-energy text-cosmic-deepest rounded-md hover:bg-circuit-magic transition-colors flex items-center">
+                      <FaEdit className="mr-2" size={14} />
+                      Edit
+                    </button>
+                    {selectedItem.source === "template" &&
+                      selectedItem.type !== "context-drop" && (
+                        <button
+                          onClick={() =>
+                            handleCreateInstance(
+                              selectedItem.data as IpsumTemplate,
+                            )
+                          }
+                          className="px-4 py-2 glass-panel text-glyph-bright hover:text-flame-blue transition-colors flex items-center"
+                        >
+                          <FaPlus className="mr-2" size={14} />
+                          Create Instance
+                        </button>
+                      )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -868,12 +937,12 @@ export const IpsumariumManager: React.FC = () => {
 
       {/* Context Drop Modal */}
       <ContextDropModal
-        isOpen={showContextDropCreator}
+        isOpen={showContextDropModal}
         onClose={() => {
-          setShowContextDropCreator(false);
+          setShowContextDropModal(false);
           setContextDropContent("");
         }}
-        onSave={handleSaveContextDrop}
+        onSaved={handleSaveContextDrop}
         initialContent={contextDropContent}
       />
     </div>

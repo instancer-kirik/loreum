@@ -19,13 +19,28 @@ export const MultiverseExplorer: React.FC = () => {
     setCurrentUniverse, 
     setCurrentTimeline,
     setCurrentWorld,
-    navigateToLevel 
+    navigateToLevel,
+    setCurrentPage 
   } = useAppContext();
   
   const [universes, setUniverses] = useState<Universe[]>([]);
   const [timelines, setTimelines] = useState<any[]>([]);
   const [worlds, setWorlds] = useState<any[]>([]);
   const [showNewModal, setShowNewModal] = useState(false);
+
+  // Helper function to get current view title
+  const getViewTitle = () => {
+    if (currentMultiverse && currentUniverse && currentTimeline && currentWorld) {
+      return `${currentWorld.name} - Civilizations & Details`;
+    } else if (currentMultiverse && currentUniverse && currentTimeline) {
+      return `${currentTimeline.name} - Worlds`;
+    } else if (currentMultiverse && currentUniverse) {
+      return `${currentUniverse.name} - Timelines`;
+    } else if (currentMultiverse) {
+      return `${currentMultiverse.name} - Universes`;
+    }
+    return 'Select a Multiverse';
+  };
 
   // Load data based on current navigation context
   useEffect(() => {

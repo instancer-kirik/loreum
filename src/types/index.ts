@@ -76,7 +76,7 @@ export interface IpsumTemplate {
   id: string;
   name: string;
   description: string;
-  type: 'species' | 'tech' | 'item' | 'magic' | 'power' | 'vehicle' | 'starship' | 'culture' | 'civilization' | 'context-drop';
+  type: 'species' | 'tech' | 'item' | 'magic' | 'power' | 'vehicle' | 'starship' | 'culture' | 'civilization';
   tags: string[];
   metadata: Record<string, any>;
   createdAt: Date;

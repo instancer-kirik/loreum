@@ -45,7 +45,7 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
   const [templateForm, setTemplateForm] = useState<Partial<IpsumTemplate & { metadata: MagicSystemMetadata }>>({
     name: '',
     description: '',
-    type: 'magic',
+    type: 'magic_system',
     tags: [],
     metadata: {
       source: 'aetheric',
@@ -67,13 +67,18 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [templatesResult, instancesResult] = await Promise.all([
-        ipsumariumService.getByType('magic'),
-        templateInstanceService.getByType('magic')
+      const [templatesResult, allInstances] = await Promise.all([
+        ipsumariumService.getByType('magic_system'),
+        templateInstanceService.getAll()
       ]);
 
+      // Filter instances to only show magic system instances
+      const magicInstances = allInstances.filter(
+        instance => instance.template.type === 'magic_system'
+      );
+
       setMagicTemplates(templatesResult);
-      setMagicInstances(instancesResult);
+      setMagicInstances(magicInstances);
     } catch (error) {
       console.error('Error loading magic systems data:', error);
     } finally {
@@ -83,10 +88,46 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
 
   const saveMagicTemplate = async () => {
     try {
+      console.log('Saving template:', templateForm);
+      
+      // Validate required fields
+      if (!templateForm.name || !templateForm.description) {
+        console.error('Missing required fields');
+        alert('Please fill in name and description');
+        return;
+      }
+      
       if (editingTemplate) {
+        console.log('Updating template:', editingTemplate.id);
         await ipsumariumService.update(editingTemplate.id, templateForm as Partial<IpsumTemplate>);
       } else {
-        await ipsumariumService.create(templateForm as Omit<IpsumTemplate, 'id' | 'createdAt' | 'updatedAt'>);
+        console.log('Creating new template with data:', {
+          name: templateForm.name,
+          description: templateForm.description,
+          type: templateForm.type,
+          tags: templateForm.tags,
+          metadata: templateForm.metadata
+        });
+        
+        const result = await ipsumariumService.create({
+          name: templateForm.name,
+          description: templateForm.description,
+          type: 'magic_system',
+          tags: templateForm.tags || [],
+          metadata: {
+            source: templateForm.metadata?.source || 'aetheric',
+            structure: templateForm.metadata?.structure || 'school-based',
+            rules: templateForm.metadata?.rules || {},
+            abilities: templateForm.metadata?.abilities || [],
+            progression: templateForm.metadata?.progression || {
+              type: 'linear',
+              requirements: {},
+              advancement: {}
+            }
+          }
+        });
+        
+        console.log('Create result:', result);
       }
       
       setEditingTemplate(null);
@@ -94,6 +135,8 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
       loadData();
     } catch (error) {
       console.error('Error saving magic template:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      alert('Failed to save template. Check console for details.');
     }
   };
 
@@ -138,7 +181,7 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
     setTemplateForm({
       name: '',
       description: '',
-      type: 'magic',
+      type: 'magic_system',
       tags: [],
       metadata: {
         source: 'aetheric',
@@ -173,7 +216,16 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
     setTemplateForm(prev => ({
       ...prev,
       metadata: {
-        ...prev.metadata!,
+        source: prev.metadata?.source || 'aetheric',
+        structure: prev.metadata?.structure || 'school-based',
+        rules: prev.metadata?.rules || {},
+        abilities: prev.metadata?.abilities || [],
+        progression: prev.metadata?.progression || {
+          type: 'linear',
+          requirements: {},
+          advancement: {}
+        },
+        ...prev.metadata,
         [key]: value
       }
     }));
@@ -216,33 +268,33 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
         <TabsContent value="templates" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Templates List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Magic System Templates</CardTitle>
-                <CardDescription>
+            <div className="glass-panel rounded-lg p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-glyph-bright">Magic System Templates</h2>
+                <p className="text-glyph-accent mt-1">
                   Reusable magical frameworks for the Ipsumarium
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </p>
+              </div>
+              <div className="space-y-4">
                 {magicTemplates.map((template) => {
                   const metadata = template.metadata as MagicSystemMetadata;
                   return (
-                    <Card key={template.id} className="p-4">
+                    <div key={template.id} className="glass-panel p-4 rounded-lg hover:border-circuit-energy/50 transition-all">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="font-semibold">{template.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <h3 className="font-semibold text-glyph-bright">{template.name}</h3>
+                          <p className="text-sm text-glyph-accent mt-1">
                             {template.description}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline">{metadata.source}</Badge>
-                            <Badge variant="secondary">{metadata.structure}</Badge>
+                            <span className="px-2 py-1 rounded-full bg-circuit-energy/20 text-circuit-energy text-xs">{metadata.source}</span>
+                            <span className="px-2 py-1 rounded-full bg-circuit-magic/20 text-circuit-magic text-xs">{metadata.structure}</span>
                           </div>
                           <div className="flex flex-wrap gap-1 mt-2">
                             {template.tags.map((tag, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <span key={index} className="px-2 py-0.5 rounded-full bg-cosmic-light/20 text-glyph-accent text-xs">
                                 {tag}
-                              </Badge>
+                              </span>
                             ))}
                           </div>
                         </div>
@@ -255,49 +307,50 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => editTemplate(template)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => deleteTemplate(template.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <button
+                              className="p-2 rounded-lg hover:bg-cosmic-medium transition-colors text-glyph-accent hover:text-glyph-bright"
+                              onClick={() => editTemplate(template)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              className="p-2 rounded-lg hover:bg-cosmic-medium transition-colors text-glyph-accent hover:text-flame-orange"
+                              onClick={() => deleteTemplate(template.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
-                <Button
+                <button
+                  className="w-full px-4 py-2 rounded-lg border border-cosmic-light text-glyph-accent hover:text-glyph-bright hover:bg-cosmic-medium transition-colors flex items-center justify-center gap-2"
                   onClick={() => {
                     setEditingTemplate(null);
                     resetForm();
                   }}
-                  className="w-full"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Magic Template
-                </Button>
-              </CardContent>
-            </Card>
+                  <Plus className="h-4 w-4" />
+                  <span>Add Magic Template</span>
+                </button>
+              </div>
+            </div>
 
             {/* Template Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {editingTemplate ? 'Edit Magic Template' : 'New Magic Template'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="glass-panel rounded-lg p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-glyph-bright">
+                  {editingTemplate ? 'Edit Magic Template' : 'Create Magic Template'}
+                </h2>
+              </div>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="template-name">Name</Label>
-                  <Input
+                  <label htmlFor="template-name" className="text-sm font-medium text-glyph-bright">Name</label>
+                  <input
+                    className="w-full px-3 py-2 bg-cosmic-medium border border-cosmic-light rounded-lg text-glyph-primary placeholder:text-glyph-secondary focus:outline-none focus:border-circuit-energy transition-colors"
                     id="template-name"
                     value={templateForm.name || ''}
                     onChange={(e) => setTemplateForm(prev => ({ ...prev, name: e.target.value }))}
@@ -306,8 +359,9 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="template-description">Description</Label>
-                  <Textarea
+                  <label htmlFor="template-description" className="text-sm font-medium text-glyph-bright">Description</label>
+                  <textarea
+                    className="w-full px-3 py-2 bg-cosmic-medium border border-cosmic-light rounded-lg text-glyph-primary placeholder:text-glyph-secondary focus:outline-none focus:border-circuit-energy transition-colors resize-none"
                     id="template-description"
                     value={templateForm.description || ''}
                     onChange={(e) => setTemplateForm(prev => ({ ...prev, description: e.target.value }))}
@@ -317,16 +371,17 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Source Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="system-source">Source</Label>
+                    <label htmlFor="source" className="text-sm font-medium text-glyph-bright">Source</label>
                     <Select
-                      value={templateForm.metadata?.source || ''}
+                      value={templateForm.metadata?.source || 'aetheric'}
                       onValueChange={(value) => updateMetadata('source', value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select source" />
+                      <SelectTrigger id="source" className="w-full px-3 py-2 bg-cosmic-medium border border-cosmic-light rounded-lg text-glyph-primary">
+                        <SelectValue placeholder="Select source type" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-cosmic-deep border border-cosmic-light">
                         <SelectItem value="aetheric">Aetheric</SelectItem>
                         <SelectItem value="divine">Divine</SelectItem>
                         <SelectItem value="ritual">Ritual</SelectItem>
@@ -337,16 +392,17 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                     </Select>
                   </div>
 
+                  {/* Structure Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="system-structure">Structure</Label>
+                    <label htmlFor="structure" className="text-sm font-medium text-glyph-bright">Structure</label>
                     <Select
-                      value={templateForm.metadata?.structure || ''}
+                      value={templateForm.metadata?.structure || 'school-based'}
                       onValueChange={(value) => updateMetadata('structure', value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select structure" />
+                      <SelectTrigger id="structure" className="w-full px-3 py-2 bg-cosmic-medium border border-cosmic-light rounded-lg text-glyph-primary">
+                        <SelectValue placeholder="Select structure type" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-cosmic-deep border border-cosmic-light">
                         <SelectItem value="school-based">School-based</SelectItem>
                         <SelectItem value="domain-based">Domain-based</SelectItem>
                         <SelectItem value="freeform">Freeform</SelectItem>
@@ -357,23 +413,25 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tags</Label>
+                  <label className="text-sm font-medium text-glyph-bright">Tags</label>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {templateForm.tags?.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      <span key={index} className="px-2 py-1 rounded-full bg-circuit-energy/20 text-circuit-energy text-xs flex items-center gap-1">
                         {tag}
                         <X
-                          className="h-3 w-3 cursor-pointer"
+                          className="h-3 w-3 cursor-pointer hover:text-flame-orange"
                           onClick={() => removeTag(index)}
                         />
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <Input
+                    <input
+                      className="flex-1 px-3 py-2 bg-cosmic-medium border border-cosmic-light rounded-lg text-glyph-primary placeholder:text-glyph-secondary focus:outline-none focus:border-circuit-energy transition-colors"
                       placeholder="Add tag..."
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
+                          e.preventDefault();
                           addTag(e.currentTarget.value);
                           e.currentTarget.value = '';
                         }
@@ -383,24 +441,28 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={saveMagicTemplate} className="flex-1">
-                    <Save className="h-4 w-4 mr-2" />
+                  <button 
+                    onClick={saveMagicTemplate}
+                    className="flex-1 px-4 py-2 rounded-lg bg-circuit-energy hover:bg-circuit-energy/80 text-cosmic-deepest font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
                     {editingTemplate ? 'Update' : 'Create'} Template
-                  </Button>
+                  </button>
                   {editingTemplate && (
-                    <Button
-                      variant="outline"
+                    <button
                       onClick={() => {
                         setEditingTemplate(null);
                         resetForm();
                       }}
+                      className="px-4 py-2 rounded-lg border border-cosmic-light hover:bg-cosmic-medium text-glyph-accent hover:text-glyph-bright transition-colors flex items-center justify-center gap-2"
                     >
+                      <X className="h-4 w-4" />
                       Cancel
-                    </Button>
+                    </button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -417,8 +479,8 @@ const MagicSystemsManager: React.FC<MagicSystemsManagerProps> = ({ className }) 
                 <Card key={instance.id} className="p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-semibold">{instance.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <h3 className="font-semibold text-glyph-bright">{instance.name}</h3>
+                      <p className="text-sm text-glyph-accent mt-1">
                         {instance.description}
                       </p>
                       <div className="flex items-center gap-2 mt-2">

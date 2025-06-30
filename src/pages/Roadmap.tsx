@@ -236,6 +236,30 @@ const roadmapData: RoadmapItem[] = [
     estimatedCompletion: 'Q3 2024'
   },
   {
+    id: 'spell-catalogs',
+    title: 'Spell Catalogs & Ability Framework',
+    description: 'Detailed spell/ability management with progression trees, prerequisites, and cross-system interactions',
+    status: 'planned',
+    priority: 'high',
+    category: 'Magic Systems',
+    icon: <FaMagic className="h-5 w-5" />,
+    progress: 0,
+    dependencies: ['magic-systems'],
+    estimatedCompletion: 'Q2 2024'
+  },
+  {
+    id: 'magic-interactions',
+    title: 'Magic System Interactions',
+    description: 'Define how different magic systems interact, conflict, or synergize with each other',
+    status: 'planned',
+    priority: 'medium',
+    category: 'Magic Systems',
+    icon: <FaAtom className="h-5 w-5" />,
+    progress: 0,
+    dependencies: ['magic-systems', 'spell-catalogs'],
+    estimatedCompletion: 'Q3 2024'
+  },
+  {
     id: 'ai-integration',
     title: 'AI Content Generation',
     description: 'AI-powered content suggestions and generation assistance',

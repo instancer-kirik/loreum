@@ -6,26 +6,14 @@ import {
   FaTag
 } from 'react-icons/fa';
 import { ChatViewer } from './ChatViewer';
-import { ipsumariumService } from '../integrations/supabase/database';
-import { IpsumTemplate } from '../types';
-
-interface EntityAnnotation {
-  id: string;
-  text: string;
-  entity_type: 'character' | 'mechanic' | 'system' | 'location' | 'item' | 'concept' | 'other';
-  entity_id?: string;
-  notes?: string;
-  start_pos: number;
-  end_pos: number;
-  color: string;
-}
+import { contextDropService, ContextDrop, ContextDropCreate, EntityAnnotation } from '../integrations/supabase/contextDrops';
 
 interface ContextDropModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (contextDrop: IpsumTemplate) => void;
+  onSaved?: (contextDrop: ContextDrop) => void;
   initialContent?: string;
-  editingTemplate?: IpsumTemplate;
+  editingContextDrop?: ContextDrop | null;
 }
 
 const ENTITY_COLORS = {
@@ -41,9 +29,9 @@ const ENTITY_COLORS = {
 export const ContextDropModal: React.FC<ContextDropModalProps> = ({
   isOpen,
   onClose,
-  onSave,
+  onSaved,
   initialContent = '',
-  editingTemplate
+  editingContextDrop = null
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -58,15 +46,15 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
   // Initialize form when modal opens or editing template changes
   useEffect(() => {
     if (isOpen) {
-      if (editingTemplate) {
-        // Editing existing context drop
-        setName(editingTemplate.name);
-        setDescription(editingTemplate.description);
-        setTags(editingTemplate.tags);
-        setRawContent(editingTemplate.metadata?.raw_content || '');
-        setAnnotations(editingTemplate.metadata?.annotations || []);
-        setConversationContext(editingTemplate.metadata?.conversation_context || '');
-        setParticipants(editingTemplate.metadata?.participants || ['user', 'chatgpt']);
+      if (editingContextDrop) {
+        // Populate form with existing context drop data
+        setName(editingContextDrop.name);
+        setDescription(editingContextDrop.description || '');
+        setRawContent(editingContextDrop.raw_content);
+        setTags(editingContextDrop.tags);
+        setAnnotations(editingContextDrop.annotations);
+        setConversationContext(editingContextDrop.conversation_context);
+        setParticipants(editingContextDrop.participants);
       } else {
         // Creating new context drop
         const defaultName = `Chat - ${new Date().toLocaleDateString()}`;
@@ -75,11 +63,11 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
         setRawContent(initialContent);
         setTags(['context-drop']);
         setAnnotations([]);
-        setConversationContext('');
+        setConversationContext('general');
         setParticipants(['user', 'chatgpt']);
       }
     }
-  }, [isOpen, editingTemplate, initialContent]);
+  }, [isOpen, editingContextDrop, initialContent]);
 
   // Handle annotation operations
   const handleAnnotationAdd = (annotation: Omit<EntityAnnotation, 'id' | 'color'>) => {
@@ -122,38 +110,41 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
   // Handle save
   const handleSave = async () => {
     if (!name.trim() || !rawContent.trim()) {
+      alert('Please provide a name and content for the context drop');
       return;
     }
 
-    setSaving(true);
     try {
-      const contextDropData: Omit<IpsumTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
+      setSaving(true);
+
+      const contextDropData: ContextDropCreate = {
         name: name.trim(),
         description: description.trim(),
-        type: 'context-drop',
+        raw_content: rawContent,
+        conversation_context: conversationContext,
+        participants,
+        annotations,
         tags,
         metadata: {
-          raw_content: rawContent,
-          annotations,
-          conversation_context: conversationContext,
-          participants,
           entity_count: annotations.length,
           linked_entities: annotations.filter(a => a.entity_id).length,
-          pending_entities: annotations.filter(a => !a.entity_id).length
+          pending_entities: annotations.filter(a => !a.entity_id).length,
+          source: 'manual',
+          created_via: 'context_drop_modal'
         }
       };
 
-      let savedTemplate: IpsumTemplate;
+      let savedContextDrop: ContextDrop;
       
-      if (editingTemplate) {
-        // Update existing template
-        savedTemplate = await ipsumariumService.update(editingTemplate.id, contextDropData);
+      if (editingContextDrop) {
+        // Update existing context drop
+        savedContextDrop = await contextDropService.update(editingContextDrop.id, contextDropData);
       } else {
-        // Create new template
-        savedTemplate = await ipsumariumService.create(contextDropData);
+        // Create new context drop
+        savedContextDrop = await contextDropService.create(contextDropData);
       }
 
-      onSave(savedTemplate);
+      onSaved?.(savedContextDrop);
       onClose();
     } catch (error) {
       console.error('Failed to save context drop:', error);
@@ -180,7 +171,7 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
             <FaComments className="text-circuit-magic" size={24} />
             <div>
               <h2 className="text-2xl font-bold text-glyph-bright font-serif">
-                {editingTemplate ? 'Edit Context Drop' : 'New Context Drop'}
+                {editingContextDrop ? 'Edit Context Drop' : 'Create Context Drop'}
               </h2>
               <p className="text-sm text-glyph-accent">
                 Capture and annotate conversation context
@@ -324,7 +315,7 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
           </div>
 
           {/* Right Panel - Chat Viewer */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col overflow-hidden">
             {/* Content Input */}
             <div className="p-4 border-b border-cosmic-light border-opacity-20">
               <label className="block text-sm font-medium text-glyph-accent mb-2">
@@ -340,7 +331,7 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
             </div>
 
             {/* Chat Viewer */}
-            <div className="flex-1">
+            <div className="flex-1 overflow-hidden">
               <ChatViewer
                 rawContent={rawContent}
                 annotations={annotations}
@@ -377,7 +368,7 @@ export const ContextDropModal: React.FC<ContextDropModalProps> = ({
               className="btn-glowing flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FaSave className="mr-2" size={16} />
-              {saving ? 'Saving...' : editingTemplate ? 'Update' : 'Save Context Drop'}
+              {saving ? 'Saving...' : editingContextDrop ? 'Update' : 'Save Context Drop'}
             </button>
           </div>
         </div>

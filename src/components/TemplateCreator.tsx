@@ -159,7 +159,7 @@ export const TemplateCreator: React.FC<TemplateCreatorProps> = ({
       ],
     },
     {
-      id: "magic",
+      id: "magic_system",
       name: "Magic System",
       icon: <FaMagic className="text-circuit-magic" />,
       description: "Magical frameworks and supernatural systems",

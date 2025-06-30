@@ -308,6 +308,32 @@ export const civilizationService = {
       eras: [],
       populationDynamics: data.population_dynamics as any
     };
+  },
+
+  async update(id: string, updates: Partial<Omit<Civilization, 'id' | 'species' | 'governments' | 'socialStructures' | 'eras'>>): Promise<Civilization> {
+    const { data, error } = await supabase
+      .from('loreum_civilizations')
+      .update({
+        name: updates.name,
+        description: updates.description,
+        population_dynamics: updates.populationDynamics
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      species: [],
+      governments: [],
+      socialStructures: [],
+      eras: [],
+      populationDynamics: data.population_dynamics as any
+    };
   }
 };
 

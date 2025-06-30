@@ -72,7 +72,7 @@ export const AppContext = createContext<AppContextType>({
 export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Legacy state
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState('landing');
   
   // Mobile navigation state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
