@@ -329,7 +329,7 @@ export const MegaMenu: React.FC = () => {
       case "world":
         return "World Architect";
       case "civilization":
-        return "Civilization Builder";
+        return "Architect Whatever";
       default:
         return "Architect Whatever";
     }

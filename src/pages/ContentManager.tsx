@@ -20,6 +20,7 @@ import {
   FaTh,
   FaList,
   FaComments,
+  FaDownload,
 } from "react-icons/fa";
 import {
   ipsumariumService,
@@ -266,13 +267,13 @@ export const IpsumariumManager: React.FC = () => {
         description: templateData.description,
         type: templateData.type,
         tags: templateData.tags || [],
-        metadata: templateData.metadata || {}
+        metadata: templateData.metadata || {},
       });
       await loadContent(); // Reload data
       setShowTemplateCreator(false);
     } catch (err) {
       console.error("Failed to save template:", err);
-      alert('Failed to save template. Check console for details.');
+      alert("Failed to save template. Check console for details.");
     }
   };
 
@@ -283,25 +284,25 @@ export const IpsumariumManager: React.FC = () => {
         console.error("No template selected for instance creation");
         return;
       }
-      
+
       await templateInstanceService.createInstance({
         templateId: instanceCreatorTemplate.id,
         worldId: currentWorld?.id || null,
         name: instanceData.name,
         description: instanceData.description,
-        localMetadata: instanceData.localMetadata || {}
+        localMetadata: instanceData.localMetadata || {},
       });
-      
+
       await loadContent(); // Reload data
       setShowInstanceCreator(false);
       setInstanceCreatorTemplate(null);
     } catch (err) {
       console.error("Failed to save instance:", err);
-      alert('Failed to save instance. Check console for details.');
+      alert("Failed to save instance. Check console for details.");
     }
   };
 
-  const handleSaveContextDrop = async (contextDrop: ContextDrop) => {
+  const handleSaveContextDrop = async (contextDrop: any) => {
     try {
       console.log("Context drop saved:", contextDrop);
       await loadContent(); // Reload data to show new context drop
@@ -309,6 +310,85 @@ export const IpsumariumManager: React.FC = () => {
     } catch (err) {
       console.error("Failed to save context drop:", err);
     }
+  };
+
+  const handleExportJSON = () => {
+    // Organize templates by type
+    const templatesByType = templates.reduce(
+      (acc, template) => {
+        const type = template.type || "other";
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(template);
+        return acc;
+      },
+      {} as Record<string, IpsumTemplate[]>,
+    );
+
+    // Organize instances by template type
+    const instancesByType = instances.reduce(
+      (acc, instance) => {
+        const type = instance.template.type || "other";
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(instance);
+        return acc;
+      },
+      {} as Record<string, TemplateInstanceWithTemplate[]>,
+    );
+
+    const exportData = {
+      metadata: {
+        exportDate: new Date().toISOString(),
+        version: "1.0.0",
+        projectName: "Loreum World Building",
+        currentContext: {
+          multiverse: currentMultiverse?.name || null,
+          universe: currentUniverse?.name || null,
+          timeline: currentTimeline?.name || null,
+          world: currentWorld?.name || null,
+        },
+        statistics: {
+          totalTemplates: templates.length,
+          totalInstances: instances.length,
+          totalContextDrops: contextDrops.length,
+          templateTypes: Object.keys(templatesByType).map((type) => ({
+            type,
+            count: templatesByType[type].length,
+          })),
+        },
+      },
+      ipsumarium: {
+        templates: templatesByType,
+        templateCount: templates.length,
+      },
+      instances: {
+        byType: instancesByType,
+        all: instances,
+        count: instances.length,
+      },
+      contextDrops: {
+        conversations: contextDrops,
+        count: contextDrops.length,
+      },
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+    const worldName = currentWorld?.name
+      ? `-${currentWorld.name.toLowerCase().replace(/\s+/g, "-")}`
+      : "";
+    const exportFileDefaultName = `loreum-export${worldName}-${new Date().toISOString().split("T")[0]}.json`;
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+
+    // Show success message (you could add a toast notification here)
+    console.log(
+      `✅ Exported ${templates.length} templates, ${instances.length} instances, and ${contextDrops.length} context drops`,
+    );
   };
 
   const formatContextPath = (instance: TemplateInstanceWithTemplate) => {
@@ -395,6 +475,13 @@ export const IpsumariumManager: React.FC = () => {
               >
                 <FaComments className="mr-2" size={16} />
                 Context Drop
+              </button>
+              <button
+                onClick={handleExportJSON}
+                className="px-4 py-2 glass-panel text-flame-cyan hover:text-glyph-bright transition-colors border border-flame-cyan border-opacity-30 hover:border-glyph-bright flex items-center"
+              >
+                <FaDownload className="mr-2" size={16} />
+                Export JSON
               </button>
             </div>
           </div>
@@ -535,6 +622,13 @@ export const IpsumariumManager: React.FC = () => {
                 >
                   <FaMagic className="mr-2" size={16} />
                   Create Template
+                </button>
+                <button
+                  onClick={handleExportJSON}
+                  className="glass-panel px-4 py-2 rounded-lg text-glyph-accent hover:text-glyph-bright transition-colors flex items-center gap-2"
+                >
+                  <FaDownload size={16} />
+                  Export JSON
                 </button>
                 <button
                   onClick={() => setShowInstanceCreator(true)}

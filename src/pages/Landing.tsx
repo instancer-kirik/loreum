@@ -13,6 +13,7 @@ import {
   FaCode,
   FaCube,
   FaChevronRight,
+  FaDownload,
 } from "react-icons/fa";
 import { useAppContext } from "../context/AppContext";
 
@@ -62,6 +63,13 @@ export const Landing: React.FC = () => {
       description:
         "Real PostgreSQL database with row-level security. Your data, your control.",
       color: "text-green-400",
+    },
+    {
+      icon: <FaDownload size={28} />,
+      title: "JSON Export",
+      description:
+        "Export all your world-building data as structured JSON. Perfect for backups or migrations.",
+      color: "text-flame-cyan",
     },
     {
       icon: <FaCube size={28} />,
@@ -165,9 +173,9 @@ export const Landing: React.FC = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-glyph-accent mb-8 max-w-3xl mx-auto">
-            A free, open-source toolkit for world-builders. Create
-            interconnected universes, manage complex narratives, and never lose
-            track of your lore again.
+            An open-source toolkit for world-builders. Create interconnected
+            universes, manage complex narratives, and never lose track of your
+            lore again.
           </p>
           <div className="flex items-center justify-center gap-4">
             <button
@@ -208,13 +216,13 @@ export const Landing: React.FC = () => {
                 "Gaia-7"
                 <br />
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──
-                The Techno-Mages
+                The Technostics
                 <br />
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──
                 Crystal Singers
                 <br />
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──
-                Void Wanderers
+                Void Spinners
               </code>
             </div>
             <div>
@@ -230,7 +238,8 @@ export const Landing: React.FC = () => {
                 <br />
                 │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Gaia-7 Keldari
                 <br />
-                │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── Void-born Keldari
+                │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── Void-reborn
+                Keldari
                 <br />
                 └── Magic/Aether Weaving
                 <br />
@@ -254,7 +263,8 @@ export const Landing: React.FC = () => {
             Key Features
           </h2>
           <p className="text-lg text-glyph-accent max-w-2xl mx-auto">
-            Built during a hackathon to solve real world-building problems.
+            Built during a hackathon to help get from chat to plan to
+            media/code.
           </p>
         </div>
 
@@ -322,8 +332,8 @@ export const Landing: React.FC = () => {
             100% Open Source
           </h2>
           <p className="text-lg text-glyph-accent mb-8 max-w-2xl mx-auto">
-            Built for the community, by the community. Fork it, extend it, make
-            it yours.
+            Built because I wanted to. Fork it and add your own features! Use it
+            for free?
           </p>
           <div className="flex items-center justify-center gap-6">
             <a
@@ -352,9 +362,7 @@ export const Landing: React.FC = () => {
             Support the Project
           </h2>
           <p className="text-lg text-glyph-accent mb-8 max-w-2xl mx-auto">
-            If Loreum helps your world-building, consider supporting its
-            development. Every contribution helps keep this project free and
-            open-source.
+            Enjoy! Support if you can; or hire me to build your project.
           </p>
           <div className="flex items-center justify-center gap-6 flex-wrap">
             <a
