@@ -115,29 +115,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4 ${className}`}>
+    <div className={`min-h-screen flex items-center justify-center bg-cosmic-deepest p-4 ${className}`}>
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Wand2 className="h-12 w-12 text-purple-600" />
+            <Wand2 className="h-12 w-12 text-circuit-magic" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Loreum</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-white">Loreum</h1>
+          <p className="text-gray-400 mt-2">
             Enter your worldbuilding sanctuary
           </p>
         </div>
 
-        <Card className="shadow-lg border-0">
+        <Card className="shadow-lg border-cosmic-dark bg-cosmic-darker">
           <CardHeader>
-            <CardTitle className="text-center">Welcome</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-center text-white">Welcome</CardTitle>
+            <CardDescription className="text-center text-gray-400">
               Sign in to your account or create a new one
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 bg-cosmic-deepest">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 <TabsTrigger value="reset">Reset</TabsTrigger>
@@ -145,16 +145,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
               {/* Error/Success Messages */}
               {error && (
-                <Alert className="mt-4 border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">
+                <Alert className="mt-4 border-red-900 bg-red-950/20">
+                  <AlertDescription className="text-red-400">
                     {error}
                   </AlertDescription>
                 </Alert>
               )}
 
               {success && (
-                <Alert className="mt-4 border-green-200 bg-green-50">
-                  <AlertDescription className="text-green-800">
+                <Alert className="mt-4 border-green-900 bg-green-950/20">
+                  <AlertDescription className="text-green-400">
                     {success}
                   </AlertDescription>
                 </Alert>
@@ -164,38 +164,38 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
               <TabsContent value="signin" className="space-y-4 mt-6">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="text-gray-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="signin-email"
                         type="email"
                         placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className="text-gray-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="signin-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -204,7 +204,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-circuit-magic hover:bg-circuit-energy text-white" 
                     disabled={isLoading || loading}
                   >
                     {isLoading || loading ? (
@@ -223,38 +223,38 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
               <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className="text-gray-300">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="signup-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -262,16 +262,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password" className="text-gray-300">Confirm Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="confirm-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Confirm your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                     </div>
@@ -279,7 +279,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-circuit-magic hover:bg-circuit-energy text-white" 
                     disabled={isLoading || loading}
                   >
                     {isLoading || loading ? (
@@ -298,16 +298,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
               <TabsContent value="reset" className="space-y-4 mt-6">
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
+                    <Label htmlFor="reset-email" className="text-gray-300">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="reset-email"
                         type="email"
                         placeholder="Enter your email"
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-cosmic-deepest border-cosmic-dark text-white placeholder:text-gray-500"
                         required
                       />
                     </div>
@@ -315,7 +315,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-circuit-magic hover:bg-circuit-energy text-white" 
                     disabled={isLoading || loading}
                   >
                     {isLoading || loading ? (
@@ -333,7 +333,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6 text-sm text-gray-600">
+        <div className="text-center mt-6 text-sm text-gray-400">
           <p>Build infinite worlds with structured creativity</p>
         </div>
       </div>
