@@ -83,7 +83,7 @@ export const Landing: React.FC = () => {
       icon: <FaPalette size={28} />,
       title: "Exportable Color Themes",
       description:
-        "Export cosmic color palettes as CSS variables, Tailwind configs, or JSON. Perfect for maintaining consistent aesthetics across your projects.",
+        "Customize and export color palettes as CSS variables, Tailwind configs, or JSON. Planning for this interface and derivatives.  Perfect for maintaining consistent aesthetics across your projects.",
       color: "text-circuit-magic",
     },
   ];
