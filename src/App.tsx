@@ -15,6 +15,8 @@ import { ItemEditor } from "./pages/ItemEditor";
 import MagicSystemsManager from "./pages/MagicSystemsManager";
 import { CharactersManager } from "./pages/CharactersManager";
 import { CreativeWorkspace } from "./pages/CreativeWorkspace";
+import { WritingWorkspace } from "./pages/WritingWorkspace";
+import { ContentDiscovery } from "./components/ContentDiscovery";
 import { Roadmap } from "./pages/Roadmap";
 import { Astraloom } from "./pages/Astraloom";
 import { ContextDropsManager } from "./pages/ContextDropsManager";
@@ -68,6 +70,10 @@ function AppContent() {
         return <NarrativeLayer />;
       case "creative":
         return <CreativeWorkspace />;
+      case "writing":
+        return <WritingWorkspace />;
+      case "discovery":
+        return <ContentDiscovery />;
       case "items":
         return <ItemEditor />;
       case "assets":

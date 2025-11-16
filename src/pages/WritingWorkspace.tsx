@@ -25,23 +25,27 @@ import {
 interface WritingProject {
   id: string;
   title: string;
-  description: string;
-  genre: string;
-  target_word_count: number;
-  current_word_count: number;
+  description: string | null;
+  creative_type: string;
+  content_format: string;
+  parent_work_id: string | null;
+  sequence_number: number;
   status:
     | "planning"
+    | "outlining"
     | "drafting"
+    | "first_draft"
     | "revising"
     | "editing"
     | "complete"
     | "published"
     | "abandoned";
-  timeline_id?: string;
-  primary_world_id?: string;
+  word_count: number;
+  target_word_count: number;
+  content: string;
+  genre: string | null;
   tags: string[];
-  notes: any;
-  outline: any;
+  collection: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,57 +53,58 @@ interface WritingProject {
 interface Chapter {
   id: string;
   title: string;
-  project_id: string;
-  chapter_number: number;
+  parent_work_id: string | null;
+  sequence_number: number;
   content: string;
   word_count: number;
-  summary?: string;
-  pov_character_id?: string;
-  setting_location_id?: string;
-  time_period?: string;
+  target_word_count: number;
   status:
-    | "planned"
-    | "outlined"
+    | "planning"
+    | "outlining"
     | "drafting"
     | "first_draft"
     | "revising"
-    | "complete";
-  target_word_count: number;
-  notes: any;
-  outline?: string;
+    | "editing"
+    | "complete"
+    | "published"
+    | "abandoned";
+  creative_type: string;
+  summary: string | null;
+  outline: string | null;
   featured_characters: string[];
   referenced_locations: string[];
   referenced_events: string[];
-  created_at: string;
-  updated_at: string;
 }
 
 interface WritingSession {
   id?: string;
-  project_id: string;
-  chapter_id?: string;
+  work_id: string;
   session_start: string;
   session_end?: string;
   words_written: number;
-  activity_type: "writing" | "editing" | "planning" | "research" | "outlining";
+  words_edited?: number;
+  activity_type: string;
   session_notes?: string;
-  mood_rating?: number;
-  productivity_rating?: number;
+  starting_word_count?: number;
 }
 
-const statusColors = {
+const statusColors: { [key: string]: string } = {
   planning: "bg-gray-500",
+  outlining: "bg-indigo-500",
   drafting: "bg-blue-500",
+  first_draft: "bg-cyan-500",
   revising: "bg-yellow-500",
-  editing: "bg-orange-500",
+  editing: "bg-purple-500",
   complete: "bg-green-500",
-  published: "bg-purple-500",
+  published: "bg-teal-500",
   abandoned: "bg-red-500",
 };
 
-const statusLabels = {
+const statusLabels: { [key: string]: string } = {
   planning: "Planning",
+  outlining: "Outlining",
   drafting: "Drafting",
+  first_draft: "First Draft",
   revising: "Revising",
   editing: "Editing",
   complete: "Complete",
@@ -180,15 +185,17 @@ export const WritingWorkspace: React.FC = () => {
   const loadProjects = async () => {
     try {
       const { data, error } = await supabase
-        .from("loreum_writing_projects")
+        .from("loreum_creative_works")
         .select("*")
+        .is("parent_work_id", null)
+        .in("creative_type", ["novel", "short_story", "novella"])
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      setProjects((data as WritingProject[]) || []);
 
       if (data && data.length > 0 && !selectedProject) {
-        setSelectedProject(data[0]);
+        setSelectedProject(data[0] as WritingProject);
       }
     } catch (error) {
       console.error("Error loading projects:", error);
@@ -198,33 +205,100 @@ export const WritingWorkspace: React.FC = () => {
   const loadChapters = async (projectId: string) => {
     try {
       const { data, error } = await supabase
-        .from("loreum_chapters")
+        .from("loreum_creative_works")
         .select("*")
-        .eq("project_id", projectId)
-        .order("chapter_number", { ascending: true });
+        .eq("parent_work_id", projectId)
+        .eq("creative_type", "chapter")
+        .order("sequence_number", { ascending: true });
 
       if (error) throw error;
-      setChapters(data || []);
+      setChapters((data as Chapter[]) || []);
 
       if (data && data.length > 0 && !selectedChapter) {
-        setSelectedChapter(data[0]);
+        setSelectedChapter(data[0] as Chapter);
       }
     } catch (error) {
       console.error("Error loading chapters:", error);
     }
   };
 
+  const updateProjectWordCount = async (projectId: string) => {
+    try {
+      const totalWords = chapters.reduce(
+        (sum, chapter) => sum + chapter.word_count,
+        0,
+      );
+
+      const { error } = await supabase
+        .from("loreum_creative_works")
+        .update({
+          word_count: totalWords,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", projectId);
+
+      if (error) throw error;
+
+      // Update local project state
+      setSelectedProject((prev) =>
+        prev ? { ...prev, word_count: totalWords } : null,
+      );
+    } catch (error) {
+      console.error("Error updating project word count:", error);
+    }
+  };
+
   const saveChapter = async (chapter: Chapter) => {
     try {
+      const wordCount = chapter.content
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+
       const { error } = await supabase
-        .from("loreum_chapters")
+        .from("loreum_creative_works")
         .update({
           content: chapter.content,
+          word_count: wordCount,
           updated_at: new Date().toISOString(),
         })
         .eq("id", chapter.id);
 
       if (error) throw error;
+
+      // Update local state
+      const updatedChapters = chapters.map((c) =>
+        c.id === chapter.id
+          ? { ...c, content: chapter.content, word_count: wordCount }
+          : c,
+      );
+      setChapters(updatedChapters);
+
+      // Update selected chapter with new word count
+      if (selectedChapter?.id === chapter.id) {
+        setSelectedChapter({ ...chapter, word_count: wordCount });
+      }
+
+      // Update project total word count
+      if (selectedProject) {
+        const totalWords = updatedChapters.reduce(
+          (sum, c) => sum + c.word_count,
+          0,
+        );
+        await supabase
+          .from("loreum_creative_works")
+          .update({
+            word_count: totalWords,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", selectedProject.id);
+
+        setSelectedProject({
+          ...selectedProject,
+          word_count: totalWords,
+        });
+      }
+
       setLastSaved(new Date());
     } catch (error) {
       console.error("Error saving chapter:", error);
@@ -235,23 +309,23 @@ export const WritingWorkspace: React.FC = () => {
     if (!selectedProject || !selectedChapter) return;
 
     const session: WritingSession = {
-      project_id: selectedProject.id,
-      chapter_id: selectedChapter.id,
+      work_id: selectedChapter.id,
       session_start: new Date().toISOString(),
       words_written: 0,
       activity_type: "writing",
+      starting_word_count: selectedChapter.word_count,
     };
 
     try {
       const { data, error } = await supabase
-        .from("loreum_writing_sessions")
+        .from("loreum_creative_sessions")
         .insert(session)
         .select()
         .single();
 
       if (error) throw error;
 
-      setCurrentSession(data);
+      setCurrentSession(data as WritingSession);
       setWordCountAtSessionStart(selectedChapter.word_count);
       setIsWriting(true);
     } catch (error) {
@@ -266,12 +340,12 @@ export const WritingWorkspace: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from("loreum_writing_sessions")
+        .from("loreum_creative_sessions")
         .update({
           session_end: new Date().toISOString(),
           words_written: Math.max(0, wordsWritten),
         })
-        .eq("id", currentSession.id);
+        .eq("id", currentSession.id!);
 
       if (error) throw error;
 
@@ -290,11 +364,11 @@ export const WritingWorkspace: React.FC = () => {
 
     try {
       await supabase
-        .from("loreum_writing_sessions")
+        .from("loreum_creative_sessions")
         .update({
           words_written: Math.max(0, wordsWritten),
         })
-        .eq("id", currentSession.id);
+        .eq("id", currentSession.id!);
     } catch (error) {
       console.error("Error updating session:", error);
     }
@@ -302,8 +376,25 @@ export const WritingWorkspace: React.FC = () => {
 
   const handleContentChange = (content: string) => {
     if (selectedChapter) {
-      const updatedChapter = { ...selectedChapter, content };
+      const wordCount = content
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+      const updatedChapter = {
+        ...selectedChapter,
+        content,
+        word_count: wordCount,
+      };
       setSelectedChapter(updatedChapter);
+
+      // Update chapters list as well
+      setChapters((prevChapters) =>
+        prevChapters.map((c) =>
+          c.id === selectedChapter.id
+            ? { ...c, content, word_count: wordCount }
+            : c,
+        ),
+      );
     }
   };
 
@@ -311,16 +402,16 @@ export const WritingWorkspace: React.FC = () => {
     if (!selectedProject) return;
 
     const nextChapterNumber =
-      Math.max(...chapters.map((c) => c.chapter_number), 0) + 1;
+      Math.max(...chapters.map((c) => c.sequence_number), 0) + 1;
     const newChapter = {
       title: `Chapter ${nextChapterNumber}`,
-      project_id: selectedProject.id,
-      chapter_number: nextChapterNumber,
+      parent_work_id: selectedProject.id,
+      sequence_number: nextChapterNumber,
       content: "",
       word_count: 0,
-      status: "planned" as const,
+      status: "planning" as const,
       target_word_count: 3000,
-      notes: {},
+      creative_type: "chapter",
       featured_characters: [],
       referenced_locations: [],
       referenced_events: [],
@@ -328,15 +419,16 @@ export const WritingWorkspace: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from("loreum_chapters")
+        .from("loreum_creative_works")
         .insert(newChapter)
         .select()
         .single();
 
       if (error) throw error;
 
-      setChapters([...chapters, data]);
-      setSelectedChapter(data);
+      const newChapterData = data as Chapter;
+      setChapters([...chapters, newChapterData]);
+      setSelectedChapter(newChapterData);
     } catch (error) {
       console.error("Error creating chapter:", error);
     }
@@ -344,9 +436,9 @@ export const WritingWorkspace: React.FC = () => {
 
   const getProgressPercentage = () => {
     if (!selectedProject || selectedProject.target_word_count === 0) return 0;
+    // Use the project's word count which includes all chapters
     return (
-      (selectedProject.current_word_count / selectedProject.target_word_count) *
-      100
+      (selectedProject.word_count / selectedProject.target_word_count) * 100
     );
   };
 
@@ -453,7 +545,7 @@ export const WritingWorkspace: React.FC = () => {
               </span>
             </div>
             <div className="text-sm text-gray-600 mb-2">
-              {selectedProject.current_word_count.toLocaleString()} /{" "}
+              {selectedProject.word_count.toLocaleString()} /{" "}
               {selectedProject.target_word_count.toLocaleString()} words
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -603,7 +695,7 @@ export const WritingWorkspace: React.FC = () => {
                     <div className="flex justify-between">
                       <span>Total Words:</span>
                       <span className="font-medium">
-                        {selectedProject.current_word_count.toLocaleString()}
+                        {selectedProject.word_count.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">

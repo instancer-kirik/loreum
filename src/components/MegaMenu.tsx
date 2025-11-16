@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   FaHome,
   FaAtom,
+  FaSearch,
   FaGlobe,
   FaUsers,
   FaCog,
@@ -85,6 +86,18 @@ const getContextualMenuCategories = (
           label: "Creative Workspace",
           description: "Write novels, poetry, songs, and other creative works",
           icon: <FaPen className="h-4 w-4" />,
+        },
+        {
+          id: "writing",
+          label: "Writing Editor",
+          description: "Write and edit your novels, stories, and chapters",
+          icon: <FaPen className="h-4 w-4" />,
+        },
+        {
+          id: "discovery",
+          label: "Content Discovery",
+          description: "Browse and discover all your creative works",
+          icon: <FaSearch className="h-4 w-4" />,
         },
       ],
     },

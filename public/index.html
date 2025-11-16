@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title:hover {
+            color: #764ba2;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .section.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .section-content {
+            display: grid;
+            gap: 20px;
+        }
+
+        .field-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .trait-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .trait {
+            background: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .trait:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .trait.removable::after {
+            content: " ×";
+            cursor: pointer;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .quick-add {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quick-add input {
+            flex: 1;
+        }
+
+        .quick-add button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-add button:hover {
+            background: #764ba2;
+        }
+
+        .character-name-display {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Character Planner</h1>
+            <p>Build rich, multi-dimensional characters with depth and authenticity</p>
+            <div class="controls">
+                <button onclick="newCharacter()">📝 New Character</button>
+                <button onclick="saveCharacter()">💾 Save</button>
+                <button onclick="loadCharacter()">📂 Load</button>
+                <button onclick="exportMarkdown()">📄 Export MD</button>
+                <button onclick="exportJSON()">⬇️ Export JSON</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="character-name-display" id="charNameDisplay">New Character</div>
+
+            <!-- BASIC INFO -->
+            <div class="section" id="basicSection">
+                <div class="section-title" onclick="toggleSection('basicSection')">
+                    <span>📋 Basic Information</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="charName">Character Name *</label>
+                            <input type="text" id="charName" placeholder="e.g., Kael Vox" oninput="updateCharacterName()">
+                        </div>
+                        <div class="field-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" placeholder="e.g., 28" min="0">
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="origin">Origin / Background</label>
+                            <input type="text" id="origin" placeholder="Where are they from?">
+                        </div>
+                        <div class="field-group">
+                            <label for="role">Role / Occupation</label>
+                            <input type="text" id="role" placeholder="e.g., Warrior, Scholar, Merchant">
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="summary">Quick Summary</label>
+                        <textarea id="summary" placeholder="2-3 sentence overview of who they are..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHYSICAL & SENSORY -->
+            <div class="section" id="physicalSection">
+                <div class="section-title" onclick="toggleSection('physicalSection')">
+                    <span>🎨 Physical & Sensory</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="appearance">Appearance</label>
+                            <textarea id="appearance" placeholder="Build, facial features, distinctive marks..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="mannerisms">Mannerisms & Movement</label>
+                            <textarea id="mannerisms" placeholder="How do they move, posture, nervous habits..."></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="voice">Voice & Speech</label>
+                            <textarea id="voice" placeholder="Tone, accent, vocabulary, speech patterns..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="sensory">Sensory Details</label>
+                            <textarea id="sensory" placeholder="Scent, texture preferences, how they feel..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERSONALITY & PSYCHOLOGY -->
+            <div class="section" id="psychSection">
+                <div class="section-title" onclick="toggleSection('psychSection')">
+                    <span>🧠 Personality & Psychology</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-group">
+                        <label>Core Traits</label>
+                        <div class="trait-list" id="traitsList"></div>
+                        <div class="quick-add">
+                            <input type="text" id="traitInput" placeholder="Add a trait (e.g., curious, stubborn, ambitious)">
+                            <button onclick="addTrait()">Add</button>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="emotionalRange">Emotional Range</label>
+                            <textarea id="emotionalRange" placeholder="What emotions do they feel most? How intense?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="emotionalTriggers">Emotional Triggers</label>
+                            <textarea id="emotionalTriggers" placeholder="What sets them off? What comforts them?"></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="defenseMechanisms">Defensive Mechanisms</label>
+                            <textarea id="defenseMechanisms" placeholder="How do they protect themselves emotionally?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="vulnerabilities">Vulnerabilities</label>
+                            <textarea id="vulnerabilities" placeholder="What genuinely hurts them?"></textarea>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="conflicts">Internal Conflicts</label>
+                        <textarea id="conflicts" placeholder="Contradictions between what they want and believe..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOTIVATIONS & DESIRES -->
+            <div class="section" id="motivationSection">
+                <div class="section-title" onclick="toggleSection('motivationSection')">
+                    <span>🎯 Motivations & Desires</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="deepDesires">Deep Desires (Core Wants)</label>
+                            <textarea id="deepDesires" placeholder="What drives them at the deepest level?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="surfaceGoals">Surface Goals</label>
+                            <textarea id="surfaceGoals" placeholder="What they think they want..."></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="fears">Fears</label>
+                            <textarea id="fears" placeholder="What are they actually afraid of?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="secrets">Secrets</label>
+                            <textarea id="secrets" placeholder="What they hide from others and themselves..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RELATIONSHIPS & SOCIAL -->
+            <div class="section" id="relationshipSection">
+                <div class="section-title" onclick="toggleSection('relationshipSection')">
+                    <span>🤝 Relationships & Social</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="relPatterns">Relationship Patterns</label>
+                            <textarea id="relPatterns" placeholder="How do they typically interact with people?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="commStyle">Communication Style</label>
+                            <textarea id="commStyle" placeholder="Direct, evasive, manipulative, honest..."></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="loyalty">Loyalty & Trust</label>
+                            <textarea id="loyalty" placeholder="Who do they trust? How do they show loyalty?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="socialRole">Social Role</label>
+                            <textarea id="socialRole" placeholder="How others perceive them vs. who they really are..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPLEXITY & GROWTH -->
+            <div class="section" id="complexSection">
+                <div class="section-title" onclick="toggleSection('complexSection')">
+                    <span>⚡ Complexity & Growth</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="flaws">Flaws & Weaknesses</label>
+                            <textarea id="flaws" placeholder="What makes them fallible and interesting?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="quirks">Quirks & Habits</label>
+                            <textarea id="quirks" placeholder="Idiosyncratic behaviors and preferences..."></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="contradictions">Contradictions</label>
+                            <textarea id="contradictions" placeholder="Tensions in their character that make them interesting..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="growthArc">Growth Arc / Potential</label>
+                            <textarea id="growthArc" placeholder="How they've changed, how they could change..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VALUES & WORLDVIEW -->
+            <div class="section" id="valuesSection">
+                <div class="section-title" onclick="toggleSection('valuesSection')">
+                    <span>🌟 Values & Worldview</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="beliefs">Core Beliefs & Values</label>
+                            <textarea id="beliefs" placeholder="What they stand for, what's non-negotiable..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="humors">Humor & Wit</label>
+                            <textarea id="humors" placeholder="How do they use humor? What makes them laugh?"></textarea>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="philosophy">Philosophy on Power/Success/Love</label>
+                            <textarea id="philosophy" placeholder="Their stance on these big concepts..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="notice">What They Notice</label>
+                            <textarea id="notice" placeholder="What details grab their attention? (Reveals priorities)"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SKILLS & ABILITIES -->
+            <div class="section" id="skillsSection">
+                <div class="section-title" onclick="toggleSection('skillsSection')">
+                    <span>⚔️ Skills & Abilities</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-group">
+                        <label>Key Skills</label>
+                        <div class="trait-list" id="skillsList"></div>
+                        <div class="quick-add">
+                            <input type="text" id="skillInput" placeholder="Add a skill (e.g., swordsmanship, magic)">
+                            <button onclick="addSkill()">Add</button>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="strengths">Strengths</label>
+                        <textarea id="strengths" placeholder="What are they exceptionally good at?"></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label for="weaknesses">Weaknesses</label>
+                        <textarea id="weaknesses" placeholder="Areas where they struggle..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTES & REFERENCES -->
+            <div class="section" id="notesSection">
+                <div class="section-title" onclick="toggleSection('notesSection')">
+                    <span>📝 Notes & References</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="field-group">
+                        <label for="notes">Additional Notes</label>
+                        <textarea id="notes" placeholder="Any other details, inspirations, references..."></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label for="inspiration">Inspiration & References</label>
+                        <textarea id="inspiration" placeholder="Books, movies, people, archetypes they're inspired by..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trait management
+        let traits = [];
+        let skills = [];
+
+        function updateCharacterName() {
+            const name = document.getElementById('charName').value || 'New Character';
+            document.getElementById('charNameDisplay').textContent = name;
+        }
+
+        function addTrait() {
+            const input = document.getElementById('traitInput');
+            const trait = input.value.trim();
+            if (trait) {
+                traits.push(trait);
+                input.value = '';
+                renderTraits();
+            }
+        }
+
+        function removeTrait(index) {
+            traits.splice(index, 1);
+            renderTraits();
+        }
+
+        function renderTraits() {
+            const list = document.getElementById('traitsList');
+            list.innerHTML = traits.map((t, i) =>
+                `<span class="trait removable" onclick="removeTrait(${i})">${t}</span>`
+            ).join('');
+        }
+
+        function addSkill() {
+            const input = document.getElementById('skillInput');
+            const skill = input.value.trim();
+            if (skill) {
+                skills.push(skill);
+                input.value = '';
+                renderSkills();
+            }
+        }
+
+        function removeSkill(index) {
+            skills.splice(index, 1);
+            renderSkills();
+        }
+
+        function renderSkills() {
+            const list = document.getElementById('skillsList');
+            list.innerHTML = skills.map((s, i) =>
+                `<span class="trait removable" onclick="removeSkill(${i})">${s}</span>`
+            ).join('');
+        }
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        function newCharacter() {
+            if (confirm('Start a new character? (Current data will not be saved)')) {
+                document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => el.value = '');
+                traits = [];
+                skills = [];
+                renderTraits();
+                renderSkills();
+                updateCharacterName();
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('collapsed'));
+            }
+        }
+
+        function getCharacterData() {
+            return {
+                name: document.getElementById('charName').value,
+                age: document.getElementById('age').value,
+                origin: document.getElementById('origin').value,
+                role: document.getElementById('role').value,
+                summary: document.getElementById('summary').value,
+                appearance: document.getElementById('appearance').value,
+                mannerisms: document.getElementById('mannerisms').value,
+                voice: document.getElementById('voice').value,
+                sensory: document.getElementById('sensory').value,
+                traits: traits,
+                emotionalRange: document.getElementById('emotionalRange').value,
+                emotionalTriggers: document.getElementById('emotionalTriggers').value,
+                defenseMechanisms: document.getElementById('defenseMechanisms').value,
+                vulnerabilities: document.getElementById('vulnerabilities').value,
+                conflicts: document.getElementById('conflicts').value,
+                deepDesires: document.getElementById('deepDesires').value,
+                surfaceGoals: document.getElementById('surfaceGoals').value,
+                fears: document.getElementById('fears').value,
+                secrets: document.getElementById('secrets').value,
+                relPatterns: document.getElementById('relPatterns').value,
+                commStyle: document.getElementById('commStyle').value,
+                loyalty: document.getElementById('loyalty').value,
+                socialRole: document.getElementById('socialRole').value,
+                flaws: document.getElementById('flaws').value,
+                quirks: document.getElementById('quirks').value,
+                contradictions: document.getElementById('contradictions').value,
+                growthArc: document.getElementById('growthArc').value,
+                beliefs: document.getElementById('beliefs').value,
+                humors: document.getElementById('humors').value,
+                philosophy: document.getElementById('philosophy').value,
+                notice: document.getElementById('notice').value,
+                skills: skills,
+                strengths: document.getElementById('strengths').value,
+                weaknesses: document.getElementById('weaknesses').value,
+                notes: document.getElementById('notes').value,
+                inspiration: document.getElementById('inspiration').value
+            };
+        }
+
+        function saveCharacter() {
+            const data = getCharacterData();
+            const name = data.name || 'Character';
+            localStorage.setItem(`character_${name}`, JSON.stringify(data));
+            alert(`Saved: ${name}`);
+        }
+
+        function loadCharacter() {
+            const name = prompt('Enter character name to load:');
+            if (name) {
+                const data = JSON.parse(localStorage.getItem(`character_${name}`));
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        if (key === 'traits') {
+                            traits = data[key];
+                            renderTraits();
+                        } else if (key === 'skills') {
+                            skills = data[key];
+                            renderSkills();
+                        } else {
+                            const el = document.getElementById(key);
+                            if (el) el.value = data[key];
+                        }
+                    });
+                    updateCharacterName();
+                    alert(`Loaded: ${name}`);
+                } else {
+                    alert('Character not found');
+                }
+            }
+        }
+
+        function exportMarkdown() {
+            const data = getCharacterData();
+            let md = `# ${data.name}\n\n`;
+
+            if (data.summary) md += `**Summary:** ${data.summary}\n\n`;
+            if (data.age) md += `**Age:** ${data.age}\n`;
+            if (data.role) md += `**Role:** ${data.role}\n`;
+            if (data.origin) md += `**Origin:** ${data.origin}\n\n`;
+
+            md += `## Physical & Sensory\n`;
+            if (data.appearance) md += `**Appearance:** ${data.appearance}\n`;
+            if (data.voice) md += `**Voice:** ${data.voice}\n`;
+            if (data.mannerisms) md += `**Mannerisms:** ${data.mannerisms}\n\n`;
+
+            md += `## Personality\n`;
+            if (data.traits.length) md += `**Traits:** ${data.traits.join(', ')}\n`;
+            if (data.emotionalRange) md += `**Emotional Range:** ${data.emotionalRange}\n`;
+            if (data.flaws) md += `**Flaws:** ${data.flaws}\n\n`;
+
+            md += `## Motivations & Desires\n`;
+            if (data.deepDesires) md += `**Deep Desires:** ${data.deepDesires}\n`;
+            if (data.fears) md += `**Fears:** ${data.fears}\n`;
+            if (data.secrets) md += `**Secrets:** ${data.secrets}\n\n`;
+
+            md += `## Skills & Abilities\n`;
+            if (data.skills.length) md += `**Skills:** ${data.skills.join(', ')}\n`;
+            if (data.strengths) md += `**Strengths:** ${data.strengths}\n\n`;
+
+            md += `## Values & Beliefs\n`;
+            if (data.beliefs) md += `**Beliefs:** ${data.beliefs}\n`;
+            if (data.philosophy) md += `**Philosophy:** ${data.philosophy}\n\n`;
+
+            if (data.notes) md += `## Notes\n${data.notes}\n`;
+
+            downloadFile(`${data.name}.md`, md);
+        }
+
+        function exportJSON() {
+            const data = getCharacterData();
+            downloadFile(`${data.name}.json`, JSON.stringify(data, null, 2));
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        renderTraits();
+        renderSkills();
+    </script>
+</body>
+</html>
+```
+
+Done! I've created a comprehensive character planner HTML page at `lovable/character-planner/index.html`. Here's what it includes:
+
+**Features:**
+- **9 major sections** covering all the character dimensions we discussed
+- **Collapsible sections** for easy navigation
+- **Quick-add trait and skill tags** with removal capabilities
+- **Save/Load functionality** using browser localStorage
+- **Export options** as Markdown or JSON
+- **Responsive design** that works on mobile and desktop
+- **Beautiful gradient UI** with purple/blue theme
+
+**Sections:**
+1. Basic Information (name, age, origin, role)
+2. Physical & Sensory (appearance, mannerisms, voice, sensory details)
+3. Personality & Psychology (traits, emotions, triggers, vulnerabilities)
+4. Motivations & Desires (deep wants, fears, secrets)
+5. Relationships & Social (patterns, communication, loyalty)
+6. Complexity & Growth (flaws, quirks, contradictions, arcs)
+7. Values & Worldview (beliefs, humor, philosophy)
+8. Skills & Abilities (key skills, strengths, weaknesses)
+9. Notes & References (additional notes and inspiration)
+
+Just open it in any browser and start building characters. The data saves locally, and you can export as markdown or JSON to move to your notes vault!
